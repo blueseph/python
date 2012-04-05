@@ -4,16 +4,6 @@ import itemlist
 import classes
 import stringparse
 
-weapon_min = ''
-weapon_max = ''
-weapon_name = 'unarmed'
-weapon_weight = 0
-armor_class = ''
-armor_weight = 0
-initiator = ''
-initiate = 0
-otpr = 0
-ptpr = 0
 kill_count = 0
 weapon_crit = 0
 weapon_critdmg = 0
@@ -38,7 +28,7 @@ class Unit:
         self.maxhp      = con * 8
         self.curhp      = self.maxhp
         if dex > str:
-            self.dmg    = dex//3
+            self.dmg    = dex//2
         else:
             self.dmg    = str//1.3
 
@@ -100,7 +90,7 @@ def decideTurn(playerweight, orcweight):
         if (initiate//playerweight * -1) < 1:
             ptpr = 1
         elif (initiate//playerweight * -1) > 5:
-            otpr = 5
+            ptpr = 5
         else:
             ptpr = initiate//playerweight * -1
         otpr = 1
@@ -144,19 +134,18 @@ def playerTurn(ptpr):
             unitHasCrit = attackCrit(player.dex, player.wepcrit)
             unitHasDodged = cunningDodge(orc.cun)
             unitCunAtk = cunningAttack(player.cun)
-            if unitHasCrit == True:
-                dmg = (wep_dmg + player.dmg) * player.wepcritdmg
-            else:
-                dmg = wep_dmg + player.dmg
+            dmg = wep_dmg + player.dmg
             if unitCunAtk == False:
                 dmg -= orc.ac
-            dmg = dmg//1
+            if unitHasCrit == True:
+                dmg *= player.wepcritdmg
+            dmg = int(dmg)
             if dmg < 0:
                 dmg = 0
             if unitHasDodged == True:
                 dmg = 0
             else:
-                orc.curhp -= dmg//1
+                orc.curhp -= dmg
                 if orc.curhp <= 0:
                     orc_death = True
                 else:
@@ -168,24 +157,22 @@ def playerTurn(ptpr):
 def orcTurn(otpr):    
     if orc.curhp > 0 and player.curhp > 0:
         for i in range(otpr):
-
             wep_dmg = random.randint(orc.wepmin, orc.wepmax)
             unitHasCrit = attackCrit(orc.dex, orc.wepcrit)
             unitHasDodged = cunningDodge(player.cun)
             unitCunAtk = cunningAttack(orc.cun)
-            if unitHasCrit == True:
-                dmg = (wep_dmg + orc.dmg) * orc.wepcritdmg
-            else:
-                dmg = wep_dmg + orc.dmg
+            dmg = wep_dmg + orc.dmg
             if unitCunAtk == False:
                 dmg -= player.ac
-            dmg = dmg//1
+            if unitHasCrit == True:
+                dmg *= orc.wepcritdmg
+            dmg = int(dmg)
             if dmg < 0:
                 dmg = 0
             if unitHasDodged == True:
                 dmg = 0
             else:
-                player.curhp -= dmg//1
+                player.curhp -= dmg
                 if player.curhp <= 0:
                     player_death = True
                 else:
@@ -202,7 +189,7 @@ def fight(initiator):
     time.sleep(2)
     print('You: (%s/%s HP) (Equip: %s (%s-%s), %s (%s ac))' % (player.curhp, player.maxhp, player.weapon, player.wepmin, player.wepmax, player.armor, player.ac) )
     time.sleep(1)
-    print('Him: (%s/%s HP)   (Equip: %s (%s-%s), %s (%s ac))' % (orc.curhp, orc.maxhp, orc.weapon, orc.wepmin, orc.wepmax, orc.armor, orc.ac) )
+    print('Him: (%s/%s HP)  (Equip: %s (%s-%s), %s (%s ac))' % (orc.curhp, orc.maxhp, orc.weapon, orc.wepmin, orc.wepmax, orc.armor, orc.ac) )
     stringparse.dispHP(player.curhp, player.maxhp, orc.curhp, orc.maxhp, 2)
     time.sleep(2)
 
