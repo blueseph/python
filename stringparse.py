@@ -3,24 +3,34 @@ import time
 def StringParse(dodge, crit, cunatk, defender, attacker, death, dmg):
     deathString = ''
     if defender == 'player':
-        initialString = ('The %s attacks.' % attacker)
+        if crit == True or cunatk == True:
+            initialString = ('The %s strikes' % attacker)
+        else:
+            initialString = ('The %s attack.' % attacker)
         if crit == True:
-            initialString = initialString + (' It hits critically!')
-        if cunatk == True:
-            initialString = initialString + (' The attack finds a weakspot!')
-        initialString = initialString + (' The %s did %s damage.' %s (attacker, dmg))
+            initialString = initialString + (' critically!')
+        if cunatk == True and crit == True:
+            initialString = initialString + (' It finds a weakspot!')
+        elif cunatk == True and crit == False:
+            initialString = initialString + ('. It find a weakspot!')
+        initialString = initialString + (' The %s did %s damage.' % (attacker, dmg))
         if death == True and dodge == False:
             deathString = ('The damage is fatal!')
-            deathStringTwo = (' You have been slain.')
+            deathStringTwo = ('You have been slain.')
         elif dodge == True:
             initialString = ('The %s attacks. You dodge!' % attacker)
     else:
-        initialString = ('You attack')
+        if crit == True or cunatk == True:
+            initialString = ('You attack')
+        else:
+            initialString = ('You attack.')
         if crit == True:
             initialString = initialString + (' critically!')
-        if cunatk == True:
+        if cunatk == True and crit == True:
+            initialString = initialString + (' You find a weakspot!')
+        elif cunatk == True and crit == False:
             initialString = initialString + ('. You find a weakspot!')
-        initialString = initialString + ('. You did %s damage.' % dmg)
+        initialString = initialString + (' You did %s damage.' % dmg)
         if death == True and dodge == False:
             deathString = ('The damage is fatal!')
             deathStringTwo = ('You have slain the %s!' % defender)
