@@ -2,6 +2,7 @@ import random
 import time
 import itemlist
 import classes
+import stringparse
 
 weapon_min = ''
 weapon_max = ''
@@ -13,8 +14,6 @@ initiator = ''
 initiate = 0
 otpr = 0
 ptpr = 0
-player_death = False
-orc_death = False
 kill_count = 0
 weapon_crit = 0
 weapon_critdmg = 0
@@ -145,117 +144,55 @@ def playerTurn(ptpr):
             unitHasCrit = attackCrit(player.dex, player.wepcrit)
             unitHasDodged = cunningDodge(orc.cun)
             unitCunAtk = cunningAttack(player.cun)
-            if unitHasDodged == True:
-                print('You attack. The orc dodges!')
-                time.sleep(1)
+            if unitHasCrit == True:
+                dmg = (wep_dmg + player.dmg) * player.wepcritdmg
             else:
-                if unitHasCrit == True:
-                    dmg = (wep_dmg + player.dmg) * player.wepcritdmg
+                dmg = wep_dmg + player.dmg
+            if unitCunAtk == False:
+                dmg -= orc.ac
+            dmg = dmg//1
+            if dmg < 0:
+                dmg = 0
+            if unitHasDodged == True:
+                dmg = 0
+            else:
+                orc.curhp -= dmg//1
+                if orc.curhp <= 0:
+                    orc_death = True
                 else:
-                    dmg = wep_dmg + player.dmg
-                if unitCunAtk == False:
-                    dmg -= orc.ac
-                if dmg <= 0:
-                    print('You attack! It does no damage.')
-                    time.sleep(1)
-                else:
-                    orc.curhp -= dmg
-                    if orc.curhp <= 0 and unitHasCrit == False and unitCunAtk == False:
-                            print('You attack! The orc takes %s damage. The damage is fatal!' % dmg)
-                            time.sleep(2)
-                            print('You have slain the orc!')
-                            orc_death = True
-                            break
-                    elif orc.curhp <= 0 and unitHasCrit == True and unitCunAtk == False:
-                            print('You critically hit the orc! The orc takes %s damage. The damage is fatal!' % dmg)
-                            time.sleep(2)
-                            print('You have slain the orc!')
-                            orc_death = True
-                            unitHasCrit == False
-                            break
-                    elif orc.curhp <= 0 and unitHasCrit == False and unitCunAtk == True:
-                            print('You find a hole in the orc\'s armor! The orc takes %s damage. The damage is fatal!' % dmg)
-                            time.sleep(2)
-                            print('You have slain the orc!')
-                            orc_death = True
-                            break
-                    elif orc.curhp <= 0 and unitHasCrit == True and unitCunAtk == True:
-                            print('You find a hole in the orc\'s armor! You also strike critically! The orc takes %s damage. The damage is fatal!' % dmg)
-                            time.sleep(2)
-                            print('You have slain the orc!')
-                            orc_death = True
-                            break
-                    elif unitHasCrit == True and unitCunAtk == False:
-                            print('You critically hit the orc! The attack does %s damage.' % dmg)
-                            time.sleep(1)
-                    elif unitHasCrit == True and unitCunAtk == True:
-                            print('You find a hole in the orc\'s armor! You also strike critically! The attack does %s damage.' % dmg)
-                            time.sleep(1)
-                    elif unitHasCrit == False and unitCunAtk == True:
-                            print('You find a hole in the orc\'s armor! The attack does %s damage.' % dmg)
-                            time.sleep(1)
-                    else:
-                            print('You attack. You deal %s damage to the orc.' % dmg )
-                            time.sleep(1)
-                        
-def orcTurn(otpr):
+                    orc_death = False
+            unitHasDied = stringparse.StringParse(unitHasDodged, unitHasCrit, unitCunAtk, 'orc', 'player', orc_death, dmg)
+            if unitHasDied == True:
+                break
+            
+def orcTurn(otpr):    
     if orc.curhp > 0 and player.curhp > 0:
         for i in range(otpr):
+
             wep_dmg = random.randint(orc.wepmin, orc.wepmax)
             unitHasCrit = attackCrit(orc.dex, orc.wepcrit)
             unitHasDodged = cunningDodge(player.cun)
             unitCunAtk = cunningAttack(orc.cun)
-            if unitHasDodged == True:
-                print('The orc attacks. You dodge!')
-                time.sleep(1)
+            if unitHasCrit == True:
+                dmg = (wep_dmg + orc.dmg) * orc.wepcritdmg
             else:
-                if unitHasCrit == True:
-                    dmg = (wep_dmg + orc.dmg) * orc.wepcritdmg
+                dmg = wep_dmg + orc.dmg
+            if unitCunAtk == False:
+                dmg -= player.ac
+            dmg = dmg//1
+            if dmg < 0:
+                dmg = 0
+            if unitHasDodged == True:
+                dmg = 0
+            else:
+                player.curhp -= dmg//1
+                if player.curhp <= 0:
+                    player_death = True
                 else:
-                    dmg = wep_dmg + orc.dmg
-                if unitCunAtk == False:
-                    dmg -= player.ac
-                if dmg <= 0:
-                    print('The orc attacks. It does no damage.')
-                    time.sleep(1)
-                else:
-                    player.curhp -= dmg
-                    if player.curhp <= 0 and unitHasCrit == False and unitCunAtk == False:
-                            print('The orc attacks! You takes %s damage. The damage is fatal!' % dmg)
-                            time.sleep(2)
-                            print('You have been slain!')
-                            player_death = True
-                            break
-                    elif player.curhp <= 0 and unitHasCrit == True and unitCunAtk == False:
-                            print('The orc critically hits you! You take %s damage. The damage is fatal!' % dmg)
-                            time.sleep(2)
-                            print('You have been slain!')
-                            player_death = True
-                            break
-                    elif player.curhp <= 0 and unitHasCrit == False and unitCunAtk == True:
-                            print('The orc finds a hole in your armor! You take %s damage. The damage is fatal!' % dmg)
-                            time.sleep(2)
-                            print('You have been slain')
-                            player_death = True
-                            break
-                    elif player.curhp <= 0 and unitHasCrit == True and unitCunAtk == True:
-                            print('The orc finds a hole in your armor! It also attacks critically! You take %s damage. The damage is fatal!' % dmg)
-                            time.sleep(2)
-                            print('You have been slain')
-                            player_death = True
-                            break
-                    elif unitHasCrit == True and unitCunAtk == False:
-                            print('The orc critically hits you! The attack does %s damage.' % dmg)
-                            time.sleep(1)
-                    elif unitHasCrit == True and unitCunAtk == True:
-                            print('The orc finds a hole in your armor! It also attacks critically! The attack does %s damage.' % dmg)
-                            time.sleep(1)
-                    elif unitHasCrit == False and unitCunAtk == True:
-                            print('The orc finds a hole in your armor! The attack does %s damage.' % dmg)
-                            time.sleep(1)
-                    else:
-                            print('The orc attacks. It deals %s damage to you.' % dmg )
-                            time.sleep(1)
+                    player_death = False
+            unitHasDied = stringparse.StringParse(unitHasDodged, unitHasCrit, unitCunAtk, 'player', 'orc', player_death, dmg)
+            if unitHasDied == True:
+                break
 
 def fight(initiator):
     player_death = False
@@ -266,7 +203,7 @@ def fight(initiator):
     print('You: (%s/%s HP) (Equip: %s (%s-%s), %s (%s ac))' % (player.curhp, player.maxhp, player.weapon, player.wepmin, player.wepmax, player.armor, player.ac) )
     time.sleep(1)
     print('Him: (%s/%s HP)   (Equip: %s (%s-%s), %s (%s ac))' % (orc.curhp, orc.maxhp, orc.weapon, orc.wepmin, orc.wepmax, orc.armor, orc.ac) )
-    print(' ')
+    stringparse.dispHP(player.curhp, player.maxhp, orc.curhp, orc.maxhp, 2)
     time.sleep(2)
 
     while player.curhp > 0 and orc.curhp > 0:
@@ -274,16 +211,13 @@ def fight(initiator):
             playerTurn(ptpr)
             time.sleep(.5)
             orcTurn(otpr)
-            if player.curhp <= 0:    #sets current hp to 0 if player or orc has died
+            if player.curhp <= 0:    
                 player.curhp = 0
                 player_death = True
             elif orc.curhp <= 0:
                 orc.curhp = 0
                 orc_death = True
-            time.sleep(.5)
-            print(' ')
-            print('         You: (%s/%s HP)       Him: (%s/%s HP)' % (player.curhp, player.maxhp, orc.curhp, orc.maxhp) )
-            print(' ')
+            stringparse.dispHP(player.curhp, player.maxhp, orc.curhp, orc.maxhp, .5)
             time.sleep(2)         
         elif initiator == 'orc' and player_death == False and orc_death == False:
             orcTurn(otpr)
@@ -295,10 +229,7 @@ def fight(initiator):
             elif orc.curhp <= 0:
                 orc.curhp = 0
                 orc_death = True
-            time.sleep(.5)
-            print(' ')
-            print('         You: (%s/%s HP)       Him: (%s/%s HP)' % (player.curhp, player.maxhp, orc.curhp, orc.maxhp) )
-            print(' ')
+            stringparse.dispHP(player.curhp, player.maxhp, orc.curhp, orc.maxhp, .5)
             time.sleep(.5)
     return player_death, orc_death, kill_count
             
@@ -308,12 +239,12 @@ player_death, orc_death, kill_count = fight(initiator)
 while player_death == False:
         orc_death = False
         kill_count += 1
-        weapon_name, weapon_min, weapon_max, weapon_weight = chooseweapon(itemlist.weapon_list) #randomly assigns weapon
-        armor_name, armor_class, armor_weight = choosearmor(itemlist.armor_list) # randomly assigns armor
-        weight = armor_weight + weapon_weight # adds total weight
-        orc = Unit(weapon_name, weapon_min, weapon_max, weapon_crit, weapon_critdmg, weapon_weight, armor_name, armor_class, armor_weight, monster_class.str, monster_class.con, monster_class.dex, monster_class.wis, monster_class.int, monster_class.cun) # gives orc stats
-        ptpr, otpr, initiator = decideTurn(player.weight, orc.weight)   #determines who goes first and how many turns per round
-        player_death, orc_death, kill_count = fight(initiator)
+        weapon_name, weapon_min, weapon_max, weapon_weight = chooseweapon(itemlist.weapon_list)
+        armor_name, armor_class, armor_weight = choosearmor(itemlist.armor_list) 
+        weight = armor_weight + weapon_weight 
+        orc = Unit(weapon_name, weapon_min, weapon_max, weapon_crit, weapon_critdmg, weapon_weight, armor_name, armor_class, armor_weight, monster_class.str, monster_class.con, monster_class.dex, monster_class.wis, monster_class.int, monster_class.cun) 
+        ptpr, otpr, initiator = decideTurn(player.weight, orc.weight)   
+        player_death, orc_death, kill_count = fight(initiator) #rerolls orc and fights again
 
 print('You have died. You killed %s orcs.' % kill_count)
 time.sleep(10)

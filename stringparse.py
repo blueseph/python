@@ -2,11 +2,12 @@ import time
 
 def StringParse(dodge, crit, cunatk, defender, attacker, death, dmg):
     deathString = ''
+    unitHasDied = False
     if defender == 'player':
         if crit == True or cunatk == True:
             initialString = ('The %s strikes' % attacker)
         else:
-            initialString = ('The %s attack.' % attacker)
+            initialString = ('The %s attacks.' % attacker)
         if crit == True:
             initialString = initialString + (' critically!')
         if cunatk == True and crit == True:
@@ -17,6 +18,8 @@ def StringParse(dodge, crit, cunatk, defender, attacker, death, dmg):
         if death == True and dodge == False:
             deathString = ('The damage is fatal!')
             deathStringTwo = ('You have been slain.')
+        if dmg <= 0:
+            initialString = ('The %s attacks. The attack does no damage.' % attacker)
         elif dodge == True:
             initialString = ('The %s attacks. You dodge!' % attacker)
     else:
@@ -34,10 +37,13 @@ def StringParse(dodge, crit, cunatk, defender, attacker, death, dmg):
         if death == True and dodge == False:
             deathString = ('The damage is fatal!')
             deathStringTwo = ('You have slain the %s!' % defender)
+        if dmg <= 0:
+            initialString = ('You attack. The attack does no damage.')
         if dodge == True:
             initialString = ('You attack. The %s dodges!' % defender)
 
     if 'The' in deathString:
+        unitHasDied = True
         print(initialString)
         time.sleep(1)
         print(deathString)
@@ -47,5 +53,12 @@ def StringParse(dodge, crit, cunatk, defender, attacker, death, dmg):
     else:
         print(initialString)
         time.sleep(1)
+    return unitHasDied
+
+def dispHP(playerhp, playermaxhp, orchp, orcmaxhp, sleeptime):
+    time.sleep(sleeptime)
+    print(' ')
+    print('         You: (%s/%s HP)       Him: (%s/%s HP)' % (playerhp, playermaxhp, orchp, orcmaxhp) )
+    print(' ')
 
         
