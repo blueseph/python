@@ -127,7 +127,7 @@ def cunningDodge(unit_cunning):
         unitHasDodged = True
     else:
         unitHasDodged = False
-    return unitHasCrit
+    return unitHasDodged
 
 def cunningAttack(unit_cunning):
     unitCunAtk = False
@@ -260,7 +260,6 @@ def orcTurn(otpr):
 def fight(initiator):
     player_death = False
     orc_death = False
-    print('otpr: %s   ptpr: %s   orc weight: %s   player weight: %s' % (otpr, ptpr, orc.weight, player.weight))
     print('An orc approaches!')
     print(' ')
     time.sleep(2)
@@ -317,3 +316,4 @@ while player_death == False:
         player_death, orc_death, kill_count = fight(initiator)
 
 print('You have died. You killed %s orcs.' % kill_count)
+time.sleep(10)
