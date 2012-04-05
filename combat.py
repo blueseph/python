@@ -7,7 +7,6 @@ import stringparse
 kill_count = 0
 weapon_crit = 0
 weapon_critdmg = 0
-unitHasCrit = False
 
 class Unit:
     def __init__(self, weapon_name, weapon_min, weapon_max, weapon_crit, weapon_critdmg, wepweight, armor, ac, armorweight, str, con, dex, wis, int, cun): 
@@ -129,14 +128,14 @@ def cunningAttack(unit_cunning):
         
 def playerTurn(ptpr):
     if orc.curhp > 0 and player.curhp > 0:
-        for i in range(ptpr):
+        for i in range(otpr):
             wep_dmg = random.randint(player.wepmin, player.wepmax)
             unitHasCrit = attackCrit(player.dex, player.wepcrit)
             unitHasDodged = cunningDodge(orc.cun)
             unitCunAtk = cunningAttack(player.cun)
             dmg = wep_dmg + player.dmg
             if unitCunAtk == False:
-                dmg -= orc.ac
+                dmg -= int(orc.ac/1.6)
             if unitHasCrit == True:
                 dmg *= player.wepcritdmg
             dmg = int(dmg)
@@ -144,12 +143,11 @@ def playerTurn(ptpr):
                 dmg = 0
             if unitHasDodged == True:
                 dmg = 0
-            else:
-                orc.curhp -= dmg
-                if orc.curhp <= 0:
-                    orc_death = True
-                else:
-                    orc_death = False
+            orc.curhp -= dmg
+            if orc.curhp <= 0:
+                orc_death = True
+            elif player.curhp > 0:
+                orc_death = False
             unitHasDied = stringparse.StringParse(unitHasDodged, unitHasCrit, unitCunAtk, 'orc', 'player', orc_death, dmg)
             if unitHasDied == True:
                 break
@@ -163,7 +161,7 @@ def orcTurn(otpr):
             unitCunAtk = cunningAttack(orc.cun)
             dmg = wep_dmg + orc.dmg
             if unitCunAtk == False:
-                dmg -= player.ac
+                dmg -= int(player.ac/1.6)
             if unitHasCrit == True:
                 dmg *= orc.wepcritdmg
             dmg = int(dmg)
@@ -171,12 +169,11 @@ def orcTurn(otpr):
                 dmg = 0
             if unitHasDodged == True:
                 dmg = 0
-            else:
-                player.curhp -= dmg
-                if player.curhp <= 0:
-                    player_death = True
-                else:
-                    player_death = False
+            player.curhp -= dmg
+            if player.curhp <= 0:
+                player_death = True
+            elif player.curhp > 0:
+                player_death = False
             unitHasDied = stringparse.StringParse(unitHasDodged, unitHasCrit, unitCunAtk, 'player', 'orc', player_death, dmg)
             if unitHasDied == True:
                 break
@@ -230,7 +227,7 @@ while player_death == False:
         armor_name, armor_class, armor_weight = choosearmor(itemlist.armor_list) 
         weight = armor_weight + weapon_weight 
         orc = Unit(weapon_name, weapon_min, weapon_max, weapon_crit, weapon_critdmg, weapon_weight, armor_name, armor_class, armor_weight, monster_class.str, monster_class.con, monster_class.dex, monster_class.wis, monster_class.int, monster_class.cun) 
-        ptpr, otpr, initiator = decideTurn(player.weight, orc.weight)   
+        ptpr, otpr, initiator = decideTurn(player.weight, orc.weight)
         player_death, orc_death, kill_count = fight(initiator) #rerolls orc and fights again
 
 print('You have died. You killed %s orcs.' % kill_count)
