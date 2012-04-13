@@ -15,18 +15,18 @@ weapon_list = [
  
 armor_list = [
        # item name, gold value, ac, weight
-	[ "cloth",		8,    0, 1  ], #0
-	[ "leather",		15,   2, 25 ], #1
-	[ "chain shirt",	80,   4, 70 ], #2
-	[ "chainmail",		150,  5, 90 ], #3
-	[ "splintmail",		245,  8, 110], #4
-	[ "plate mail",		450, 12, 130], #5
+	[ "cloth",		8,    0,   1, 'chest'], #0
+	[ "leather",		15,   2,  25, 'chest'], #1
+	[ "chain shirt",	80,   4,  70, 'chest'], #2
+	[ "chainmail",		150,  5,  90, 'chest'], #3
+	[ "splintmail",		245,  8, 110, 'chest'], #4
+	[ "plate mail",		450, 12, 130, 'chest'], #5
 ]
 
 shield_list = [
-    #item name, gold value, block value, weight
-    [ "small shield",           8,  2,  20], #0
-    [ "round shield",          15,  4,  35], #1 
-    [ "kite shield",           40,  6,  50], #2
-    [ "tower shield",          70,  9,  80], #3
+    #item name, gold value, block value, weight, type
+    [ "small shield",           8,  2,  20, 'shield'], #0
+    [ "round shield",          15,  4,  35, 'shield'], #1 
+    [ "kite shield",           40,  6,  50, 'shield'], #2
+    [ "tower shield",          70,  9,  80, 'shield'], #3
     ]
