@@ -1,45 +1,46 @@
 import time
 
-def StringParse(dodge, crit, cunatk, defender, attacker, death, dmg):
+def StringParse(dodge, crit, cunatk, defender, attacker, death, dmg, offhand):
+    hasCrit = crit[0]
     deathString = ''
     unitHasDied = False
-    if defender == 'player':
-        if crit == True or cunatk == True:
+    if defender is 'player':
+        if hasCrit is True or cunatk is True:
             initialString = ('The %s strikes' % attacker)
         else:
             initialString = ('The %s attacks.' % attacker)
-        if crit == True:
+        if hasCrit is True:
             initialString = initialString + (' critically!')
-        if cunatk == True and crit == True:
+        if cunatk is True and hasCrit is True:
             initialString = initialString + (' It finds a weakspot!')
-        elif cunatk == True and crit == False:
+        elif cunatk is True and hasCrit is False:
             initialString = initialString + ('. It find a weakspot!')
         initialString = initialString + (' The %s did %s damage.' % (attacker, dmg))
-        if death == True and dodge == False:
+        if death is True and dodge is False:
             deathString = ('The damage is fatal!')
             deathStringTwo = ('You have been slain.')
         if dmg <= 0:
             initialString = ('The %s attacks. The attack does no damage.' % attacker)
-        elif dodge == True:
+        elif dodge is True:
             initialString = ('The %s attacks. You dodge!' % attacker)
     else:
-        if crit == True or cunatk == True:
+        if hasCrit is True or cunatk is True:
             initialString = ('You attack')
         else:
             initialString = ('You attack.')
-        if crit == True:
+        if hasCrit is True:
             initialString = initialString + (' critically!')
-        if cunatk == True and crit == True:
+        if cunatk is True and hasCrit is True:
             initialString = initialString + (' You find a weakspot!')
-        elif cunatk == True and crit == False:
+        elif cunatk is True and hasCrit is False:
             initialString = initialString + ('. You find a weakspot!')
         initialString = initialString + (' You did %s damage.' % dmg)
-        if death == True and dodge == False:
+        if death is True and dodge is False:
             deathString = ('The damage is fatal!')
             deathStringTwo = ('You have slain the %s!' % defender)
         if dmg <= 0:
             initialString = ('You attack. The attack does no damage.')
-        if dodge == True:
+        if dodge is True:
             initialString = ('You attack. The %s dodges!' % defender)
 
     if 'The' in deathString:
@@ -61,4 +62,3 @@ def dispHP(playerhp, playermaxhp, orchp, orcmaxhp, sleeptime):
     print('         You: (%s/%s HP)       Him: (%s/%s HP)' % (playerhp, playermaxhp, orchp, orcmaxhp) )
     print(' ')
 
-        
