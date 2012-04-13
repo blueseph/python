@@ -1,6 +1,6 @@
 import time
 
-def StringParse(dodge, crit, cunatk, defender, attacker, death, dmg, offhand):
+def StringParse(dodge, crit, cunatk, defender, attacker, death, dmg, offhand, block):
     hasCrit = crit[0]
     deathString = ''
     unitHasDied = False
@@ -15,6 +15,8 @@ def StringParse(dodge, crit, cunatk, defender, attacker, death, dmg, offhand):
             initialString = initialString + (' It finds a weakspot!')
         elif cunatk is True and hasCrit is False:
             initialString = initialString + ('. It find a weakspot!')
+        if block is True:
+            initialString = initialString + (' You block some damage!')
         initialString = initialString + (' The %s did %s damage.' % (attacker, dmg))
         if death is True and dodge is False:
             deathString = ('The damage is fatal!')
@@ -34,6 +36,8 @@ def StringParse(dodge, crit, cunatk, defender, attacker, death, dmg, offhand):
             initialString = initialString + (' You find a weakspot!')
         elif cunatk is True and hasCrit is False:
             initialString = initialString + ('. You find a weakspot!')
+        if block is True:
+            initialString = initialString + (' It blocks some damage!')
         initialString = initialString + (' You did %s damage.' % dmg)
         if death is True and dodge is False:
             deathString = ('The damage is fatal!')
