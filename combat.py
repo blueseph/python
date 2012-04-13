@@ -3,52 +3,85 @@ import time
 import itemlist
 import classes
 import stringparse
-
-kill_count = 0
+import equipment
 
 class Unit:
-    def __init__(self, type, weapon_name, weapon_min, weapon_max, weapon_crit, weapon_critdmg, wepweight, wepmainhand, armor, ac, armorweight, str, con, dex, wis, int, cun):
-        self.type           = type
-        self.weapon         = weapon_name
-        self.wepmin         = weapon_min
-        self.wepmax         = weapon_max
-        self.wepcrit        = weapon_crit
-        self.wepcritdmg     = weapon_critdmg
-        self.wephhand       = wepmainhand
-        self.armor          = armor
-        self.ac             = ac
-        self.str            = str
-        self.con            = con
-        self.dex            = dex
-        self.wis            = wis
-        self.int            = int
-        self.cun            = cun
-        self.weight         = wepweight + armorweight
-        self.maxhp          = con * 8
+    def __init__(self, type):
+        self.type           = type.type
+        self.str            = type.str
+        self.con            = type.con
+        self.dex            = type.dex
+        self.wis            = type.wis
+        self.int            = type.int
+        self.cun            = type.cun
+        self.maxhp          = self.con * 8
         self.curhp          = self.maxhp
-        if dex > str:
-            self.dmg        = dex//2
+        if self.dex > self.str:
+            self.dmg        = self.dex//2.6
         else:
-            self.dmg        = str//1.3
-    
+            self.dmg        = self.str//1.3
+        self.mainhand       = None
+        self.offhand        = None
+        self.offhandWeight  = 0
+        self.armorWeight    = 0
 
-def chooseweapon(weapon_list, weaponChoice): #getting weapon properties out of the itemlist
-    weapon_name = {}
-    weapon_name = itemlist.weapon_list[weaponChoice][0]
-    weapon_min = itemlist.weapon_list[weaponChoice][2]
-    weapon_max = itemlist.weapon_list[weaponChoice][3]
-    weapon_crit = itemlist.weapon_list[weaponChoice][4]
-    weapon_critdmg = itemlist.weapon_list[weaponChoice][5]
-    weapon_weight = itemlist.weapon_list[weaponChoice][7]
-    weapon_hand = itemlist.weapon_list[weaponChoice][8]
-    return weapon_name, weapon_min, weapon_max, weapon_crit, weapon_critdmg, weapon_weight, weapon_hand
+    def equip(self, item):
+        if (item.type is '1h' or '2h') and (self.mainhand is None): #deletes currently equipped items. need to fix
+            self.mainhand           = item.type
+            self.mainhandWeaponName = item.name
+            self.mainhandWeight     = item.weight
+            self.mainhandGoldValue  = item.goldValue
+            self.mainhandWepMin     = item.wepMin
+            self.mainhandWepMax     = item.wepMax
+            self.mainhandCrit       = item.wepCrit
+            self.mainhandCritDmg    = item.wepCritDmg
+            self.mainhandRange      = item.wepRange # need to impliment range
+        elif self.mainhand is '1h' and item.type is '1h':
+            self.offhand            = item.type
+            self.offhandItemName    = item.name
+            self.offhandWeight      = item.weight
+            self.offhandGoldValue   = item.goldValue
+            self.offhandWepMin      = item.wepMin
+            self.offhandWepMax      = item.wepMax
+            self.offhandCrit        = item.wepCrit
+            self.offhandCritDmg     = item.wepCritDmg
+            self.offhandRange       = item.weaponRange
+        elif item.type is 'shield':
+            self.offhand            = item.type
+            self.offhandItemName    = item.name
+            self.offhandWeight      = item.weight
+            self.offhandGoldValue   = item.goldValue
+            self.offhandBlockValue  = item.blockValue
+            self.offhandBlockChance = item.blockChance
+        elif (item.type is not 'shield' or '1h' or '2h'):
+            self.armorName          = item.name
+            self.armorWeight        = item.weight
+            self.armorGoldValue     = item.goldValue
+            self.armorClass         = item.armorClass
+#        elif (item.type is 'shield' and self.offhand is not None) or (item.type is '1h' and self.offhand is not None)
+        self.weight = self.mainhandWeight + self.offhandWeight + self.armorWeight # works in a very ugly way
+            
+def chooseWeapon(weapon_list, weaponChoice): #getting weapon properties out of the itemlist
+    name         = {}
+    name         = itemlist.weapon_list[weaponChoice][0]
+    goldValue    = itemlist.weapon_list[weaponChoice][1]
+    wepMin       = itemlist.weapon_list[weaponChoice][2]
+    wepMax       = itemlist.weapon_list[weaponChoice][3]
+    wepCrit      = itemlist.weapon_list[weaponChoice][4]
+    wepCritDmg   = itemlist.weapon_list[weaponChoice][5]
+    wepRange     = itemlist.weapon_list[weaponChoice][6]
+    weight       = itemlist.weapon_list[weaponChoice][7]
+    type         = itemlist.weapon_list[weaponChoice][8]
+    return name, weight, type, goldValue, wepMin, wepMax, wepCrit, wepCritDmg, wepRange 
 
-def choosearmor(armor_list, armorChoice): #getting armor properties out of the itemlist
-    armor_name = {}
-    armor_name = itemlist.armor_list[armorChoice][0]
-    armor_class = itemlist.armor_list[armorChoice][2]
-    armor_weight = itemlist.armor_list[armorChoice][3]
-    return armor_name, armor_class, armor_weight
+def chooseArmor(armor_list, armorChoice): #getting armor properties out of the itemlist
+    name        = {}
+    name        = itemlist.armor_list[armorChoice][0]
+    goldValue   = itemlist.armor_list[armorChoice][1]
+    armorClass  = itemlist.armor_list[armorChoice][2]
+    weight      = itemlist.armor_list[armorChoice][3]
+    type        = itemlist.armor_list[armorChoice][4]
+    return name, weight, type, goldValue, armorClass #armor type currently not implimented
 
 def chooseClass():
     print('Choose your class')
@@ -56,30 +89,36 @@ def chooseClass():
     print('''B: Berserker (STR, CON)
 R: Rogue (DEX, CUN)
 W: Warrior (CON, STR)''')
-    player_class = input()
-    if player_class.lower().startswith('w'):
-        player_class = classes.Warrior
-        player_weapon_name, player_weapon_min, player_weapon_max, player_weapon_crit, player_weapon_critdmg, player_weapon_weight, player_weapon_mainhand = chooseweapon(itemlist.weapon_list, 0)
-        player_armor_name, player_armor_class, player_armor_weight = choosearmor(itemlist.armor_list, 4)
-    elif player_class.lower().startswith('b'):
-        player_class = classes.Berserker
-        player_weapon_name, player_weapon_min, player_weapon_max, player_weapon_crit, player_weapon_critdmg, player_weapon_weight, player_weapon_mainhand = chooseweapon(itemlist.weapon_list, 5)
-        player_armor_name, player_armor_class, player_armor_weight = choosearmor(itemlist.armor_list, 2)
-    elif player_class.lower().startswith('r'):
-        player_class = classes.Rogue
-        player_weapon_name, player_weapon_min, player_weapon_max, player_weapon_crit, player_weapon_critdmg, player_weapon_weight, player_weapon_mainhand = chooseweapon(itemlist.weapon_list, 3)
-        player_armor_name, player_armor_class, player_armor_weight = choosearmor(itemlist.armor_list, 1)
+    playerClass = input()
+    if playerClass.lower().startswith('w'):
+        playerClass = classes.Warrior
+        startWeapon = 0
+        startArmor = 4
+    elif playerClass.lower().startswith('b'):
+        playerClass = classes.Berserker
+        startWeapon = 5
+        startArmor = 2
+    elif playerClass.lower().startswith('r'):
+        playerClass = classes.Rogue
+        startWeapon = 3
+        startArmor = 1
     global player
-    player = Unit(player_class.type, player_weapon_name, player_weapon_min, player_weapon_max, player_weapon_crit, player_weapon_critdmg, player_weapon_weight, player_weapon_mainhand, player_armor_name, player_armor_class, player_armor_weight, player_class.str, player_class.con, player_class.dex, player_class.wis, player_class.int, player_class.cun)
+    player = Unit(playerClass)
+    weapon = equipment.Weapon(*chooseWeapon(itemlist.weapon_list, startWeapon))
+    armor  = equipment.Armor(*chooseArmor(itemlist.armor_list, startArmor))
+    Unit.equip(player, weapon) 
+    Unit.equip(player, armor)
 
 def chooseMonsterClass():
-    monster_class = classes.Orc
-    monster_weapon_name, monster_weapon_min, monster_weapon_max, monster_weapon_crit, monster_weapon_critdmg, monster_weapon_weight, monster_weapon_mainhand = chooseweapon(itemlist.weapon_list, random.randint(0, 7)) #randomly assigns weapon
-    monster_armor_name, monster_armor_class, monster_armor_weight = choosearmor(itemlist.armor_list, random.randint(0, 5)) # randomly assigns armor
+    monsterClass = classes.Orc
     global monster
-    monster = Unit(monster_class.type, monster_weapon_name, monster_weapon_min, monster_weapon_max, monster_weapon_crit, monster_weapon_critdmg, monster_weapon_weight, monster_weapon_mainhand, monster_armor_name, monster_armor_class, monster_armor_weight, monster_class.str, monster_class.con, monster_class.dex, monster_class.wis, monster_class.int, monster_class.cun) # gives monster stats
-
-def decideTurn(player_weight, monster_weight):
+    monster = Unit(monsterClass)
+    weapon = equipment.Weapon(*chooseWeapon(itemlist.weapon_list, random.randint(0, 7)))
+    armor  = equipment.Armor(*chooseArmor(itemlist.armor_list, random.randint(0, 5)))
+    Unit.equip(monster, weapon)
+    Unit.equip(monster, armor)
+    
+def decideTurn(player_weight, monster_weight): #todo cleanup?
     initiate = player_weight - monster_weight
     if initiate > 0:
         initiator = 'monster'
@@ -105,137 +144,169 @@ def decideTurn(player_weight, monster_weight):
         mtpr = 1
     return ptpr, mtpr, initiator
 
-def attackCrit(unit_dex, weapon_crit_mod):
-    unitHasCrit = False
-    unit_crit_mod = unit_dex//4
-    if (random.randint(1, 20) <= (unit_crit_mod + weapon_crit_mod)):
-        unitHasCrit = True
-    else:
-        unitHasCrit = False
-    return unitHasCrit
+def getDmgRoll(unit):
+    wepOhDmg = 0
+    wepMhDmg = random.randint(unit.mainhandWepMin, unit.mainhandWepMax) + unit.dmg
+    if unit.offhand is not None and unit.offhand is not 'shield':
+        wepOhDmg = random.randint(unit.offhandWepMin, unit.offhandWepMax) + unit.dmg
+    return wepMhDmg, wepOhDmg
 
-def cunningDodge(unit_cunning):
+def attackCrit(unit):
+    unitHasCrit = False
+    unitOffhandCrit = False
+    unitMainhandCrit = False
+    unitCritMod = unit.dex//4
+    if (random.randint(1, 20) <= (unitCritMod + unit.mainhandCrit)):
+            unitMainhandCrit = True
+    if unit.offhand is not None and unit.offhand is not 'shield':
+        if (random.randint(1, 20) <= (unitCritMod + unit.offhandCrit)):
+            unitOffhandCrit = True
+    if unitMainhandCrit is True or unitOffhandCrit is True:
+            unitHasCrit = True
+    return unitHasCrit, unitMainhandCrit, unitOffhandCrit
+
+def cunningDodge(unit):
     unitHasDodged = False
-    unit_cunning = unit_cunning//3
-    if (random.randint(1, 20)  <= (unit_cunning)):
+    if (random.randint(1, 20)  <= (unit.cun//3)):
         unitHasDodged = True
-    else:
-        unitHasDodged = False
     return unitHasDodged
 
-def cunningAttack(unit_cunning):
+def cunningAttack(unit):
     unitCunAtk = False
-    unit_cunning = unit_cunning//3
-    if (random.randint(1, 20)  <= (unit_cunning)):
+    if (random.randint(1, 20)  <= (unit.cun//3)):
         unitCunAtk = True
-    else:
-        unitCunningAttack = False
     return unitCunAtk
         
 def playerTurn(ptpr):
+    offhand = False
+    if player.offhand is not None:
+        offhand = player.offhandType
     if monster.curhp > 0 and player.curhp > 0:
-        for i in range(mtpr):
-            wep_dmg = random.randint(player.wepmin, player.wepmax)
-            unitHasCrit = attackCrit(player.dex, player.wepcrit)
-            unitHasDodged = cunningDodge(monster.cun)
-            unitCunAtk = cunningAttack(player.cun)
-            dmg = wep_dmg + player.dmg
-            if unitCunAtk == False:
-                dmg -= int(monster.ac/1.6)
-            if unitHasCrit == True:
-                dmg *= player.wepcritdmg
-            dmg = int(dmg)
-            if dmg < 0:
-                dmg = 0
+        for i in range(ptpr):
+            wepMhDmg, wepOhDmg = getDmgRoll(player)
+            unitHasCrit = attackCrit(player)
+            unitHasDodged = cunningDodge(monster)
+            unitCunAtk = cunningAttack(player)
+            if unitCunAtk is False:
+                wepMhDmg -= int(monster.armorClass/1.6)
+                wepOhDmg -= int(monster.armorClass/1.6)
+            if unitHasCrit is True:
+                if unitMainhandCrit is True:
+                    wepMhDmg *= player.mainhandCrit
+                elif unitOffhandCrit is True:
+                    wepOhDmg *= player.offhandCrit
+            if wepOhDmg < 0:
+                wepOhDmg = 0
+            wepTotDmg = int(wepMhDmg) + int(wepOhDmg)
+            if wepTotDmg < 0:
+                wepTotDmg = 0
             if unitHasDodged == True:
-                dmg = 0
-            monster.curhp -= dmg
+                wepTotDmg = 0
+            monster.curhp -= wepTotDmg
             if monster.curhp <= 0:
-                monster_death = True
+                monsterDeath = True
             elif monster.curhp > 0:
-                monster_death = False
-            unitHasDied = stringparse.StringParse(unitHasDodged, unitHasCrit, unitCunAtk, monster.type, 'player', monster_death, dmg)
+                monsterDeath = False
+            unitHasDied = stringparse.StringParse(unitHasDodged, unitHasCrit, unitCunAtk, monster.type, 'player', monsterDeath, wepTotDmg, offhand)
             if unitHasDied == True:
                 break
             
-def monsterTurn(mtpr):    
+def monsterTurn(mtpr):
+    offhand = False
+    if player.offhand is not None:
+        offhand = player.offhandType
     if monster.curhp > 0 and player.curhp > 0:
         for i in range(mtpr):
-            wep_dmg = random.randint(monster.wepmin, monster.wepmax)
-            unitHasCrit = attackCrit(monster.dex, monster.wepcrit)
-            unitHasDodged = cunningDodge(player.cun)
-            unitCunAtk = cunningAttack(monster.cun)
-            dmg = wep_dmg + monster.dmg
-            if unitCunAtk == False:
-                dmg -= int(player.ac/1.6)
-            if unitHasCrit == True:
-                dmg *= monster.wepcritdmg
-            dmg = int(dmg)
-            if dmg < 0:
-                dmg = 0
+            wepMhDmg, wepOhDmg = getDmgRoll(monster)
+            unitHasCrit = attackCrit(monster)
+            unitHasDodged = cunningDodge(player)
+            unitCunAtk = cunningAttack(monster)
+            if unitCunAtk is False:
+                wepMhDmg -= int(player.armorClass/1.6)
+                wepOhDmg -= int(player.armorClass/1.6)
+            if unitHasCrit is True:
+                if unitMainhandCrit is True:
+                    wepMhDmg *= monster.mainhandCrit
+                elif unitOffhandCrit is True:
+                    wepOhDmg *= monster.offhandCrit
+            if wepOhDmg < 0:
+                wepOhDmg = 0
+            wepTotDmg = int(wepMhDmg) + int(wepOhDmg)
+            if wepTotDmg < 0:
+                wepTotDmg = 0
             if unitHasDodged == True:
-                dmg = 0
-            player.curhp -= dmg
+                wepTotDmg = 0
+            player.curhp -= wepTotDmg
             if player.curhp <= 0:
-                player_death = True
+                playerDeath = True
             elif player.curhp > 0:
-                player_death = False
-            unitHasDied = stringparse.StringParse(unitHasDodged, unitHasCrit, unitCunAtk, 'player', monster.type, player_death, dmg)
+                playerDeath = False
+            unitHasDied = stringparse.StringParse(unitHasDodged, unitHasCrit, unitCunAtk, 'player', monster.type, playerDeath, wepTotDmg, offhand)
             if unitHasDied == True:
                 break
-
-def fight(initiator):
-    player_death = False
-    monster_death = False
+def fight(initiator):  #todo cleanup?
+    playerDeath = False
+    monsterDeath = False
     print('An enemy approaches!')
     print(' ')
-    time.sleep(2)
-    print('You: (%s/%s HP) (Equip: %s (%s-%s), %s (%s ac))' % (player.curhp, player.maxhp, player.weapon, player.wepmin, player.wepmax, player.armor, player.ac) )
     time.sleep(1)
-    print('Him: (%s/%s HP)  (Equip: %s (%s-%s), %s (%s ac))' % (monster.curhp, monster.maxhp, monster.weapon, monster.wepmin, monster.wepmax, monster.armor, monster.ac) )
+    print('Equipment:')
+    time.sleep(.5)
+    if player.offhand is not None:
+        print('You: %s (mainhand), %s (offhand), %s (%s ac)' % (player.mainhandWeaponName, player.offhandItemName, player.armorName, player.armorClass))
+    else:
+        print('You: %s (mainhand), %s (%s ac)' % (player.mainhandWeaponName, player.armorName, player.armorClass))
+    time.sleep(.5)
+    if monster.offhand is not None:
+        print('%s: %s (mainhand), %s (offhand), %s (%s ac)' % (monster.type, monster.mainhandWeaponName, monster.offhandItemName, monster.armorName, monster.armorClass))
+    else:
+        print('%s: %s (mainhand), %s (%s ac)' % (monster.type, monster.mainhandWeaponName, monster.armorName, monster.armorClass))
+    time.sleep(1)
     stringparse.dispHP(player.curhp, player.maxhp, monster.curhp, monster.maxhp, 2)
-    time.sleep(2)
+    time.sleep(1)
 
     while player.curhp > 0 and monster.curhp > 0:
-        if initiator == 'player' and player_death == False and monster_death == False:
+        if initiator is 'player' and playerDeath is False and monsterDeath is False:
             playerTurn(ptpr)
-            time.sleep(.5)
+            time.sleep(1)
             monsterTurn(mtpr)
             if player.curhp <= 0:    
                 player.curhp = 0
-                player_death = True
+                playerDeath = True
             elif monster.curhp <= 0:
                 monster.curhp = 0
-                monster_death = True
+                monsterDeath = True
             stringparse.dispHP(player.curhp, player.maxhp, monster.curhp, monster.maxhp, .5)
             time.sleep(2)         
-        elif initiator == 'monster' and player_death == False and monster_death == False:
+        elif initiator is 'monster' and playerDeath is False and monsterDeath is False:
             monsterTurn(mtpr)
-            time.sleep(.5)
+            time.sleep(1)
             playerTurn(ptpr)
             if player.curhp <= 0:        
                 player.curhp = 0
-                player_death = True
+                playerDeath = True
             elif monster.curhp <= 0:
                 monster.curhp = 0
-                monster_death = True
+                monsterDeath = True
             stringparse.dispHP(player.curhp, player.maxhp, monster.curhp, monster.maxhp, .5)
             time.sleep(.5)
-    return player_death, monster_death, kill_count
+    return playerDeath, monsterDeath, kill_count
 
-chooseClass()
-print(player.type)
-chooseMonsterClass()
-print(monster.type)
+chooseClass()                                                       #chooses player class
+chooseMonsterClass()                                                #chooses monster class
 ptpr, mtpr, initiator = decideTurn(player.weight, monster.weight)   #determines who goes first and how many turns per round
-player_death, monster_death, kill_count = fight(initiator)
+kill_count = 0                                                      
+playerDeath, monsterDeath, kill_count = fight(initiator)          #initiates fight
 
-while player_death == False:
-        monster_death = False
+while playerDeath == False:
+        monsterDeath = False
         kill_count += 1
         chooseMonsterClass()
         ptpr, mtpr, initiator = decideTurn(player.weight, monster.weight)
-        player_death, monster_death, kill_count = fight(initiator) #rerolls monster and fights again
+        playerDeath, monsterDeath, kill_count = fight(initiator) #rerolls monster and fights again
 
-print('You have died. You killed %s monsters.' % kill_count)
+if kill_count is 1:
+	print('You have died. You killed %s monster.' % kill_count)
+else:
+	print('You have died. You killed %s monsters.' % kill_count)
 time.sleep(10)
