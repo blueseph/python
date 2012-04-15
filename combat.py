@@ -4,6 +4,7 @@ import itemlist
 import classes
 import stringparse
 import equipment
+import abilities
 
 class Unit:
     def __init__(self, type):
@@ -14,7 +15,7 @@ class Unit:
         self.wis            = type.wis
         self.int            = type.int
         self.cun            = type.cun
-        self.maxhp          = self.con * 8
+        self.maxhp          = self.con * 14
         self.curhp          = self.maxhp
         if self.dex > self.str:
             self.dmg        = self.dex//2.6
@@ -59,7 +60,7 @@ class Unit:
             self.armorGoldValue     = item.goldValue
             self.armorClass         = item.armorClass
 #        elif (item.type is 'shield' and self.offhand is not None) or (item.type is '1h' and self.offhand is not None)
-        self.weight = self.mainhandWeight + self.offhandWeight + self.armorWeight # works in a very ugly way
+        self.weight = self.mainhandWeight + self.offhandWeight + self.armorWeight
             
 def chooseWeapon(weapon_list, weaponChoice): #getting weapon properties out of the itemlist
     name         = {}
@@ -133,31 +134,67 @@ def chooseMonsterClass():
     Unit.equip(monster, weapon)
     Unit.equip(monster, armor)
     
-def decideTurn(playerWeight, monsterWeight): #todo cleanup?
-    initiate = playerWeight - monsterWeight
-    if initiate > 0:
-        initiator = 'monster'
-        if initiate//monsterWeight < 1:
-            mtpr = 1
-        elif initiate//monsterWeight > 5:
-            mtpr = 3
+def decideTurn(playerWeight, monsterWeight): 
+    if (playerWeight - monsterWeight) > 0:
+        initiator = monster
+        defender = player
+        if playerWeight//monsterWeight < 1:
+            tpr = 1
+        elif playerWeight//monsterWeight > 3:
+            tpr = 3
         else:
-            mtpr = initiate//monsterWeight
-        ptpr = 1
-    elif initiate <0:
-        initiator = 'player'
-        if (initiate//playerWeight * -1) < 1:
-            ptpr = 1
-        elif (initiate//playerWeight * -1) > 5:
-            ptpr = 3
+            tpr = playerWeight//monsterWeight
+    elif (playerWeight - monsterWeight) <0:
+        initiator = player
+        defender = monster
+        if (playerWeight//playerWeight * -1) < 1:
+            tpr = 1
+        elif (playerWeight//playerWeight * -1) > 3:
+            tpr = 3
         else:
-            ptpr = initiate//playerWeight * -1
-        mtpr = 1
+            tpr = playerWeight//playerWeight * -1
     else:
-        initiator = 'player'
-        ptpr = 1
-        mtpr = 1
-    return ptpr, mtpr, initiator
+        initiator = player
+        defender = monster
+        tpr = 1
+    return tpr, initiator, defender
+
+def meleeAttack(attacker, defender):
+    offhand = False
+    unitDeath = (False, 'nobody')
+    if attacker.offhand is not None:
+        offhand = attacker.offhand
+    wepMhDmg, wepOhDmg = getDmgRoll(attacker)
+    unitHasCrit = attackCrit(attacker)
+    unitHasDodged = cunningDodge(defender)
+    unitHasBlocked = blockAttack(defender)
+    unitCunAtk = cunningAttack(attacker)
+    if unitHasBlocked is True:
+        wepMhDmg -= defender.offhandBlockValue
+        wepOhDmg -= defender.offhandBlockValue
+    if unitCunAtk is False:
+        wepMhDmg -= int(defender.armorClass/1.6)
+        wepOhDmg -= int(defender.armorClass/1.6)
+    if unitHasCrit[0] is True:
+        if unitHasCrit[1] is True:
+            wepMhDmg *= attacker.mainhandCrit
+        elif unitHasCrit[0] is True:
+            wepOhDmg *= attacker.offhandCrit
+    if wepOhDmg < 0:
+        wepOhDmg = 0
+    wepTotDmg = int(wepMhDmg) + int(wepOhDmg)
+    if wepTotDmg < 0:
+        wepTotDmg = 0
+    if unitHasDodged == True:
+        wepTotDmg = 0
+    defender.curhp -= wepTotDmg
+    if defender.curhp <= 0:
+        if defender.type is not 'berserker' and defender.type is not 'rogue' and defender.type is not 'warrior':
+            unitDeath = (True, 'monster')
+        else:
+            unitDeath = (True, 'player')
+    stringparse.meleeStringParse(unitHasDodged, unitHasCrit, unitCunAtk, defender, attacker, unitDeath, wepTotDmg, unitHasBlocked)
+    return unitDeath
 
 def getDmgRoll(unit):
     wepOhDmg = 0
@@ -199,89 +236,21 @@ def cunningAttack(unit):
         unitCunAtk = True
     return unitCunAtk
         
-def playerTurn(ptpr):
-    offhand = False
-    if player.offhand is not None:
-        offhand = player.offhand
-    if monster.curhp > 0 and player.curhp > 0:
-        for i in range(ptpr):
-            wepMhDmg, wepOhDmg = getDmgRoll(player)
-            unitHasCrit = attackCrit(player)
-            unitHasDodged = cunningDodge(monster)
-            unitHasBlocked = blockAttack(monster)
-            unitCunAtk = cunningAttack(player)
-            if unitHasBlocked is True:
-                wepMhDmg -= monster.offhandBlockValue
-                wepOhDmg -= monster.offhandBlockValue
-            if unitCunAtk is False:
-                wepMhDmg -= int(monster.armorClass/1.6)
-                wepOhDmg -= int(monster.armorClass/1.6)
-            if unitHasCrit is True:
-                if unitMainhandCrit is True:
-                    wepMhDmg *= player.mainhandCrit
-                elif unitOffhandCrit is True:
-                    wepOhDmg *= player.offhandCrit
-            if wepOhDmg < 0:
-                wepOhDmg = 0
-            wepTotDmg = int(wepMhDmg) + int(wepOhDmg)
-            if wepTotDmg < 0:
-                wepTotDmg = 0
-            if unitHasDodged == True:
-                wepTotDmg = 0
-            monster.curhp -= wepTotDmg
-            if monster.curhp <= 0:
-                monsterDeath = True
-            elif monster.curhp > 0:
-                monsterDeath = False
-            unitHasDied = stringparse.StringParse(unitHasDodged, unitHasCrit, unitCunAtk, monster.type, 'player', monsterDeath, wepTotDmg, offhand, unitHasBlocked)
-            if unitHasDied == True:
+def gameTurn(tpr, attacker, defender):
+    if defender.curhp > 0 and attacker.curhp > 0:
+        for i in range(tpr):
+            unitDeath = meleeAttack(attacker, defender)
+            if unitDeath[0] is True:
                 break
+        return unitDeath
             
-def monsterTurn(mtpr):
-    offhand = False
-    if player.offhand is not None:
-        offhand = player.offhand
-    if monster.curhp > 0 and player.curhp > 0:
-        for i in range(mtpr):
-            wepMhDmg, wepOhDmg = getDmgRoll(monster)
-            unitHasCrit = attackCrit(monster)
-            unitHasDodged = cunningDodge(player)
-            unitHasBlocked = blockAttack(player)
-            unitCunAtk = cunningAttack(monster)
-            if unitHasBlocked is True:
-                wepMhDmg -= player.offhandBlockValue
-                wepOhDmg -= player.offhandBlockValue
-            if unitCunAtk is False:
-                wepMhDmg -= int(player.armorClass/1.6)
-                wepOhDmg -= int(player.armorClass/1.6)
-            if unitHasCrit is True:
-                if unitMainhandCrit is True:
-                    wepMhDmg *= monster.mainhandCrit
-                elif unitOffhandCrit is True:
-                    wepOhDmg *= monster.offhandCrit
-            if wepOhDmg < 0:
-                wepOhDmg = 0
-            wepTotDmg = int(wepMhDmg) + int(wepOhDmg)
-            if wepTotDmg < 0:
-                wepTotDmg = 0
-            if unitHasDodged == True:
-                wepTotDmg = 0
-            player.curhp -= wepTotDmg
-            if player.curhp <= 0:
-                playerDeath = True
-            elif player.curhp > 0:
-                playerDeath = False
-            unitHasDied = stringparse.StringParse(unitHasDodged, unitHasCrit, unitCunAtk, 'player', monster.type, playerDeath, wepTotDmg, offhand, unitHasBlocked)
-            if unitHasDied == True:
-                break
-def fight(initiator):  #todo cleanup?
-    playerDeath = False
-    monsterDeath = False
+def fight(initiator):
+    print(' ')
     print('An enemy approaches!')
     print(' ')
     time.sleep(1)
     print('Equipment:')
-    time.sleep(.5)
+    time.sleep(1)
     if player.offhand is not None:
         print('You: %s (mainhand), %s (offhand), %s (%s ac)' % (player.mainhandWeaponName, player.offhandItemName, player.armorName, player.armorClass))
     elif player.mainhand is '2h':
@@ -295,49 +264,28 @@ def fight(initiator):  #todo cleanup?
         print('%s: %s (two-handed), %s (%s ac)' % (monster.type, monster.mainhandWeaponName, monster.armorName, monster.armorClass))
     else:
         print('%s: %s (mainhand), %s (%s ac)' % (monster.type, monster.mainhandWeaponName, monster.armorName, monster.armorClass))
+    stringparse.dispHP(player.curhp, player.maxhp, monster.curhp, monster.maxhp)
     time.sleep(1)
-    stringparse.dispHP(player.curhp, player.maxhp, monster.curhp, monster.maxhp, 2)
-    time.sleep(1)
-
     while player.curhp > 0 and monster.curhp > 0:
-        if initiator is 'player' and playerDeath is False and monsterDeath is False:
-            playerTurn(ptpr)
-            time.sleep(1)
-            monsterTurn(mtpr)
-            if player.curhp <= 0:    
-                player.curhp = 0
-                playerDeath = True
-            elif monster.curhp <= 0:
-                monster.curhp = 0
-                monsterDeath = True
-            stringparse.dispHP(player.curhp, player.maxhp, monster.curhp, monster.maxhp, .5)
-            time.sleep(2)         
-        elif initiator is 'monster' and playerDeath is False and monsterDeath is False:
-            monsterTurn(mtpr)
-            time.sleep(1)
-            playerTurn(ptpr)
-            if player.curhp <= 0:        
-                player.curhp = 0
-                playerDeath = True
-            elif monster.curhp <= 0:
-                monster.curhp = 0
-                monsterDeath = True
-            stringparse.dispHP(player.curhp, player.maxhp, monster.curhp, monster.maxhp, .5)
-            time.sleep(.5)
-    return playerDeath, monsterDeath, kill_count
+        unitDeath = gameTurn(tpr, initiator, defender)
+        if unitDeath[0] is True:
+            stringparse.dispHP(player.curhp, player.maxhp, monster.curhp, monster.maxhp)
+            break
+        unitDeath = gameTurn(1, defender, initiator)
+        stringparse.dispHP(player.curhp, player.maxhp, monster.curhp, monster.maxhp)
+    return unitDeath
 
 chooseClass()                                                       #chooses player class
 chooseMonsterClass()                                                #chooses monster class
-ptpr, mtpr, initiator = decideTurn(player.weight, monster.weight)   #determines who goes first and how many turns per round
-kill_count = 0                                                      
-playerDeath, monsterDeath, kill_count = fight(initiator)          #initiates fight
+tpr, initiator, defender = decideTurn(player.weight, monster.weight)   #determines who goes first and how many turns per round
+kill_count = 0
+unitDeath = fight(initiator)          #initiates fight
 
-while playerDeath == False:
-        monsterDeath = False
+while 'player' not in unitDeath:
         kill_count += 1
         chooseMonsterClass()
-        ptpr, mtpr, initiator = decideTurn(player.weight, monster.weight)
-        playerDeath, monsterDeath, kill_count = fight(initiator) #rerolls monster and fights again
+        tpr, initiator, defender = decideTurn(player.weight, monster.weight)
+        unitDeath = fight(initiator) #rerolls monster and fights again
 
 if kill_count is 1:
 	print('You have died. You killed %s monster.' % kill_count)
