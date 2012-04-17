@@ -3,8 +3,7 @@ import time
 def meleeStringParse(dodge, crit, cunatk, defender, attacker, death, dmg, block):
     hasCrit = crit[0]
     deathString = ''
-    unitHasDied = False
-    if attacker.type is 'berserker' or attacker.type is 'rogue' or attacker.type is'warrior':
+    if attacker.type is 'player':
         if hasCrit is True or cunatk is True:
             initialString = ('You attack')
         else:
@@ -18,14 +17,11 @@ def meleeStringParse(dodge, crit, cunatk, defender, attacker, death, dmg, block)
         if block is True:
             initialString = initialString + (' It blocks some damage!')
         initialString = initialString + (' You did %s damage.' % dmg)
-        if death[0] is True and dodge is False:
-            deathString = ('The damage is fatal!')
-            deathStringTwo = ('You have slain the %s!' % defender.type)
         if dmg <= 0:
             initialString = ('You attack. The attack does no damage.')
         if dodge is True:
             initialString = ('You attack. The %s dodges!' % defender.type)
-    elif attacker.type is not 'berserker' or 'rogue' or 'warrior':
+    elif attacker.type is 'monster':
         if hasCrit is True or cunatk is True:
             initialString = ('The %s strikes' % attacker.type)
         else:
@@ -39,24 +35,46 @@ def meleeStringParse(dodge, crit, cunatk, defender, attacker, death, dmg, block)
         if block is True:
             initialString = initialString + (' You block some damage!')
         initialString = initialString + (' The %s did %s damage.' % (attacker.type, dmg))
-        if death[0] is True and dodge is False:
-            deathString = ('The damage is fatal!')
-            deathStringTwo = ('You have been slain.')
         if dmg <= 0:
             initialString = ('The %s attacks. The attack does no damage.' % attacker.type)
         elif dodge is True:
             initialString = ('The %s attacks. You dodge!' % attacker.type)
+    print(initialString)
+    time.sleep(.5)
+    determineDeath(defender, death)
 
+def castStringParse(caster, defender, spellInfo, death):
+    if caster.type is 'player':
+        initialString = ('You cast %s.' % spellInfo[0])
+        if 'dmg' in spellInfo[1]:
+            initialString += (' It does %s damage.' % spellInfo[5])
+            if death[0] is True:
+                deathString = ('The damage is fatal!')
+                deathStringTwo = ('You have slain the %s!' % defender.type)
+        elif 'heal' in spellInfo[1]:
+            initialString += ('It restores %s hitpoints.' % spellInfo[5])
+    elif caster.type is 'monster':
+        initialString = ('The %s casts %s.' % (attacker.type, spellInfo[0]))
+        if 'dmg' in spellInfo[1]:
+            initialString += (' It does %s damage.' % spellInfo[5])
+            if death[0] is True:
+                deathString = ('The damage is fatal!')
+                deathStringTwo = ('You have slain the %s!' % defender.type)
+        elif 'heal' in spellInfo[1]:
+            initialString += ('It restores %s hitpoints.' % spellInfo[5])
+    print(initialString)
+    determineDeath(defender, death)
+
+def determineDeath(defender, death):
     if death[0] is True:
-        print(initialString)
         time.sleep(1.5)
-        print(deathString)
+        print('The damage is fatal!')
         time.sleep(1.5)
-        print(deathStringTwo)
-        time.sleep(2.5)
-    else:
-        print(initialString)
-        time.sleep(1)
+        if defender.type is 'player':
+            print('You have been slain!')
+        elif defender.type is 'monster':
+            print('The %s has been slain!' % defender.unitclass)
+        time.sleep(2.0)
 
 def dispHP(playerhp, playermaxhp, orchp, orcmaxhp):
     if playerhp < 0:
