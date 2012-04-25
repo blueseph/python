@@ -35,6 +35,10 @@ class Unit:
         self.offhand        = None
         self.offhandWeight  = 0
         self.armorWeight    = 0
+        self.inventory      = []
+
+    def addInventoryItem(self, item):
+        self.inventory.append(item)
 
     def equip(self, item):
         if (item.type is '1h' or '2h') and (self.mainhand is None): #deletes currently equipped items. need to fix
@@ -105,10 +109,13 @@ w: Wizard (INT, WIS)
         hasOffhand = False
     global player
     player = Unit(playerClass)
+    Unit.addInventoryItem(player, weapon)
+    Unit.addInventoryItem(player, armor)
     Unit.equip(player, weapon) 
     Unit.equip(player, armor)
     if hasOffhand is True:
         Unit.equip(player, offhand)
+        Unit.addInventoryItem(player, offhand)
 
 def chooseMonsterClass():
     monsterClass = Orc
@@ -116,8 +123,11 @@ def chooseMonsterClass():
     monster = Unit(monsterClass)
     weapon = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, random.randint(0, 7)))
     armor  = equipment.Armor(*equipment.chooseArmor(itemlist.armor_list, random.randint(0, 5)))
+    Unit.addInventoryItem(monster, weapon)
+    Unit.addInventoryItem(monster,armor)
     Unit.equip(monster, weapon)
     Unit.equip(monster, armor)
+    
 
 #                           str, con, dex, wis, int, cun
 Berserker = Attributes('berserker', 16, 11, 5, 2, 4, 3)
