@@ -3,6 +3,7 @@ import time
 import classes
 import stringparse
 import spells
+import combatdisplay
 
 def decideTurn(player, monster):
     playerWeight = player.weight
@@ -34,6 +35,7 @@ def decideTurn(player, monster):
 def meleeAttack(attacker, defender):
     offhand = False
     unitDeath = (False, 'nobody')
+    attackType = 'melee'
     if attacker.offhand is not None:
         offhand = attacker.offhand
     wepMhDmg, wepOhDmg = getDmgRoll(attacker)
@@ -61,8 +63,8 @@ def meleeAttack(attacker, defender):
         wepTotDmg = 0
     defender.curhp -= wepTotDmg
     unitDeath = determineDeath(defender)
-    stringparse.meleeStringParse(unitHasDodged, unitHasCrit, unitCunAtk, defender, attacker, unitDeath, wepTotDmg, unitHasBlocked)
-    return unitDeath
+    damageInfo = (unitHasDodged, unitHasCrit, unitCunAtk, unitDeath, wepTotDmg, unitHasBlocked, attackType)
+    return unitDeath, damageInfo
 
 def determineDeath(defender):
     unitDeath = (False, 'nobody')
@@ -113,46 +115,43 @@ def cunningAttack(unit):
         unitCunAtk = True
     return unitCunAtk
         
-def gameTurn(tpr, attacker, defender):
+def combatTurn(tpr, attacker, defender):
+    attackInTurn = {}
     if defender.curhp > 0 and attacker.curhp > 0:
         for i in range(tpr):
             if attacker.unitclass is 'wizard':
-                unitDeath = spells.castSpell(attacker, defender, 0)
+                unitDeath, spellInfo  = spells.castSpell(attacker, defender, 0)
+                initialString = stringparse.castStringParse(attacker, defender, spellInfo)
             else:
-                unitDeath = meleeAttack(attacker, defender)
+                unitDeath, damageInfo = meleeAttack(attacker, defender)
+                initialString = stringparse.meleeStringParse(defender, attacker, damageInfo)
+            attackInTurn[i] = initialString
             if unitDeath[0] is True:
                 break
-    return unitDeath
+    return unitDeath, attackInTurn
             
 def fight():
-    print(' ')
-    print('An enemy approaches!')
-    print(' ')
-    time.sleep(1)
-    print('Equipment:')
-    time.sleep(1)
-    if classes.player.offhand is not None:
-        print('You: %s (mainhand), %s (offhand), %s (%s ac)' % (classes.player.mainhandWeaponName, classes.player.offhandItemName, classes.player.armorName, classes.player.armorClass))
-    elif classes.player.mainhand is '2h':
-        print('You: %s (two-handed), %s (%s ac)' % (classes.player.mainhandWeaponName, classes.player.armorName, classes.player.armorClass))
-    else:
-        print('You: %s (mainhand), %s (%s ac)' % (classes.player.mainhandWeaponName, classes.player.armorName, classes.player.armorClass))
-    time.sleep(.5)
-    if classes.monster.offhand is not None:
-        print('%s: %s (mainhand), %s (offhand), %s (%s ac)' % (classes.monster.clas, classes.monster.mainhandWeaponName, classes.monster.offhandItemName, classes.monster.armorName, classes.monster.armorClass))
-    elif classes.monster.mainhand is '2h':
-        print('%s: %s (two-handed), %s (%s ac)' % (classes.monster.unitclass, classes.monster.mainhandWeaponName, classes.monster.armorName, classes.monster.armorClass))
-    else:
-        print('%s: %s (mainhand), %s (%s ac)' % (classes.monster.unitclass, classes.monster.mainhandWeaponName, classes.monster.armorName, classes.monster.armorClass))
-    stringparse.dispHP(classes.player.curhp, classes.player.maxhp, classes.monster.curhp, classes.monster.maxhp)
-    time.sleep(1)
+    combatdisplay.drawEnemyApproachesWindow()
+    time.sleep(2)
+    combatdisplay.drawInitialCombatWindow(classes.player, classes.monster)
+    time.sleep(2)
     tpr, initiator, defender =  decideTurn(classes.player, classes.monster)
     while classes.player.curhp > 0 and classes.monster.curhp > 0:
-        unitDeath = gameTurn(tpr, initiator, defender)
+        unitDeath, attackInTurn = combatTurn(tpr, initiator, defender)
+        combatdisplay.drawInCombatWindow(classes.player, classes.monster, attackInTurn)
+        time.sleep(1.5)
         if unitDeath[0] is True:
-            stringparse.dispHP(classes.player.curhp, classes.player.maxhp, classes.monster.curhp, classes.monster.maxhp)
+            time.sleep(1)
+            combatdisplay.drawDeathWindow(classes.player, classes.monster, unitDeath)
+            time.sleep(2.5)
             break
-        time.sleep(.5)
-        unitDeath = gameTurn(1, defender, initiator)
-        stringparse.dispHP(classes.player.curhp, classes.player.maxhp, classes.monster.curhp, classes.monster.maxhp)
+        unitDeath, attackInTurn = combatTurn(1, defender, initiator)
+        combatdisplay.drawInCombatWindow(classes.player, classes.monster, attackInTurn)
+        time.sleep(1.5)
+        if unitDeath[0] is True:
+            time.sleep(1)
+            combatdisplay.drawDeathWindow(classes.player, classes.monster, unitDeath)
+            time.sleep(2.5) 
+            break
+        time.sleep(1)
     return unitDeath
