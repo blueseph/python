@@ -74,6 +74,3 @@ def chooseShield(shield_list, shieldChoice): #getting shield properties out of t
     weight      = itemlist.shield_list[shieldChoice][3]
     type        = itemlist.shield_list[shieldChoice][4]
     return name, weight, type, goldValue, blockValue        
-        
-         
-         
