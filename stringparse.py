@@ -2,38 +2,38 @@ import time
 
 def meleeStringParse(defender, attacker, damageInfo):
     if attacker.type is 'player':
-        if damageInfo[1] is True or damageInfo[2] is True:
+        if damageInfo[1][1] is True or damageInfo[2] is True:
             initialString = ('You attack')
         else:
             initialString = ('You attack.')
-        if damageInfo[1] is True:
+        if damageInfo[1][1] is True:
             initialString = initialString + (' critically!')
-        if damageInfo[2] is True and damageInfo[1] is True:
+        if damageInfo[2] is True and damageInfo[1][1] is True:
             initialString = initialString + (' You find a weakspot!')
-        elif damageInfo[2] is True and damageInfo[1] is False:
+        elif damageInfo[2] is True and damageInfo[1][1] is False:
             initialString = initialString + ('. You find a weakspot!')
-        if damageInfo[5] is True:
+        if damageInfo[4] is True:
             initialString = initialString + (' It blocks some damage!')
-        initialString = initialString + (' You did %s damage.' % damageInfo[4])
-        if damageInfo[4] <= 0:
+        initialString = initialString + (' You did %s damage.' % damageInfo[3])
+        if damageInfo[3] <= 0:
             initialString = ('You attack. The attack does no damage.')
         if damageInfo[0] is True:
             initialString = ('You attack. The %s dodges!' % defender.type)
     elif attacker.type is 'monster':
-        if damageInfo[1] is True or damageInfo[2] is True:
+        if damageInfo[1][1] is True or damageInfo[2] is True:
             initialString = ('The %s strikes' % attacker.type)
         else:
             initialString = ('The %s attacks.' % attacker.type)
-        if damageInfo[1] is True:
+        if damageInfo[1][1] is True:
             initialString = initialString + (' critically!')
-        if damageInfo[2] is True and damageInfo[1] is True:
+        if damageInfo[2] is True and damageInfo[1][1] is True:
             initialString = initialString + (' It finds a weakspot!')
-        elif damageInfo[2] is True and damageInfo[1] is False:
+        elif damageInfo[2] is True and damageInfo[1][1] is False:
             initialString = initialString + ('. It find a weakspot!')
-        if damageInfo[5] is True:
+        if damageInfo[4] is True:
             initialString = initialString + (' You block some damage!')
-        initialString = initialString + (' The %s did %s damage.' % (attacker.type, damageInfo[4]))
-        if damageInfo[4] <= 0:
+        initialString = initialString + (' The %s did %s damage.' % (attacker.type, damageInfo[3]))
+        if damageInfo[3] <= 0:
             initialString = ('The %s attacks. The attack does no damage.' % attacker.type)
         elif damageInfo[0] is True:
             initialString = ('The %s attacks. You dodge!' % attacker.type)
