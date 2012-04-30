@@ -12,6 +12,8 @@ spells = {
     ]
     }
 
+spellCooldowns = {}
+
 def castSpell(caster, defender, spellChoice):
     spellName       = spells[caster.unitclass][spellChoice][0]
     spellType       = spells[caster.unitclass][spellChoice][2]
@@ -25,6 +27,8 @@ def castSpell(caster, defender, spellChoice):
         defender.curhp -= spellMag
     if spellType is 'heal':
         attacker.curhp += spellMag
-    unitDeath = combat.determineDeath(defender)
-    return unitDeath, spellInfo
+    combat.determineDeath(defender)
+    return spellInfo
+        
+
     
