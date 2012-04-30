@@ -1,7 +1,62 @@
 import time
 import random
+import classes
+import gameturn
 
 tempWords = ('bam pow ouch splat slam slice crack wham whack').split()
+
+def gainLevel():
+    print('''
+
+
+
+
+
+
+
+                            You feel more experienced!
+                            
+
+
+ 
+                              
+                                    
+
+
+
+
+
+
+
+
+
+''')
+    time.sleep(1)
+    print('''
+
+
+
+
+
+
+
+                            You feel more experienced!
+                            You are now level %s.
+
+
+ 
+                              
+                                    
+
+
+
+
+
+
+
+
+
+''' % classes.player.curlvl)
 
 def displayInventory(unit):
     evenout = {}
@@ -10,8 +65,6 @@ def displayInventory(unit):
         itemslot[i] = ' '
     for i in range(len(unit.inventory) + 1):
         itemslot[i] = '[' + unit.inventory[i - 1].name.title() + ']'
-    for i in range(1, 4):
-        evenout[i] = ' ' * (len(itemslot[i]) + len(itemslot[i*3-1]) + len(itemslot[i*3]))
     print('''
 
 
@@ -36,10 +89,10 @@ def displayInventory(unit):
 ''' %  (itemslot[1], itemslot[2], itemslot[3], itemslot[4], itemslot[5], itemslot[6], itemslot[7], itemslot[8], itemslot[9], itemslot[10], itemslot[11], itemslot[12]))
     
 
-def drawDeathWindow(player, monster, death):
+def drawDeathWindow(player, monster):
     playerHPBar = getHPBar(player)
     monsterHPBar = getHPBar(monster)
-    if death[1] is 'player':
+    if gameturn.playerDeath is True:
         print('         You: %s/%s' % (player.curhp, player.maxhp))
         print('         %s' % playerHPBar)
         print('''
@@ -63,7 +116,7 @@ def drawDeathWindow(player, monster, death):
 
 ''')
 
-    else:
+    elif gameturn.monsterDeath:
         print('         You: %s/%s' % (player.curhp, player.maxhp))
         print('         %s' % playerHPBar)
         print('''
@@ -185,11 +238,13 @@ def getHPBar(unit):
 
 def getEquipBar(unit):
     if unit.type is 'player':
-        unit.unitclass = 'you'
-    if unit.offhand is not None:
-        equipBar = ('%s: %s (mainhand), %s (offhand, %s (%s ac)' % (unit.unitclass.title(), unit.mainhandWeaponName, unit.offhandItemName, unit.armorName, unit.armorClass))
-    elif unit.mainhand is '2h':
-         equipBar = ('%s: %s (two-handed), %s (%s ac)' % (unit.unitclass.title(), unit.mainhandWeaponName, unit.armorName, unit.armorClass))
+        equipUnit = 'you'
     else:
-         equipBar = ('%s: %s (mainhand), %s (%s ac)' % (unit.unitclass.title(), unit.mainhandWeaponName, unit.armorName, unit.armorClass))
+        equipUnit = unit.unitclass
+    if unit.offhand is not None:
+        equipBar = ('%s: %s (mainhand), %s (offhand, %s (%s ac)' % (equipUnit.title(), unit.mainhandWeaponName, unit.offhandItemName, unit.armorName, unit.armorClass))
+    elif unit.mainhand is '2h':
+         equipBar = ('%s: %s (two-handed), %s (%s ac)' % (equipUnit.title(), unit.mainhandWeaponName, unit.armorName, unit.armorClass))
+    else:
+         equipBar = ('%s: %s (mainhand), %s (%s ac)' % (equipUnit.title(), unit.mainhandWeaponName, unit.armorName, unit.armorClass))
     return equipBar
