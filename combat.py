@@ -4,6 +4,8 @@ import classes
 import stringparse
 import spells
 import combatdisplay
+import gameturn
+import main
 
 def decideTurn(player, monster):
     playerWeight = player.weight
@@ -34,7 +36,6 @@ def decideTurn(player, monster):
 
 def meleeAttack(attacker, defender):
     offhand = False
-    unitDeath = (False, 'nobody')
     attackType = 'melee'
     if attacker.offhand is not None:
         offhand = attacker.offhand
@@ -62,19 +63,17 @@ def meleeAttack(attacker, defender):
     if unitHasDodged == True:
         wepTotDmg = 0
     defender.curhp -= wepTotDmg
-    unitDeath = determineDeath(defender)
-    damageInfo = (unitHasDodged, unitHasCrit, unitCunAtk, unitDeath, wepTotDmg, unitHasBlocked, attackType)
-    return unitDeath, damageInfo
+    determineDeath(defender)
+    damageInfo = (unitHasDodged, unitHasCrit, unitCunAtk, wepTotDmg, unitHasBlocked, attackType)
+    return damageInfo
 
 def determineDeath(defender):
-    unitDeath = (False, 'nobody')
     if defender.curhp <= 0:
         if defender.type is 'monster':
-            unitDeath = (True, 'monster')
-        else:
-            unitDeath = (True, 'player')
-    return unitDeath
-
+            gameturn.monsterDeath = True
+        elif defender.type is 'player':
+            gameturn.playerDeath = True
+    
 def getDmgRoll(unit):
     wepOhDmg = 0
     wepMhDmg = random.randint(unit.mainhandWepMin, unit.mainhandWepMax) + unit.dmg
@@ -120,38 +119,41 @@ def combatTurn(tpr, attacker, defender):
     if defender.curhp > 0 and attacker.curhp > 0:
         for i in range(tpr):
             if attacker.unitclass is 'wizard':
-                unitDeath, spellInfo  = spells.castSpell(attacker, defender, 0)
+                spellInfo  = spells.castSpell(attacker, defender, 0)
                 initialString = stringparse.castStringParse(attacker, defender, spellInfo)
             else:
-                unitDeath, damageInfo = meleeAttack(attacker, defender)
+                damageInfo = meleeAttack(attacker, defender)
                 initialString = stringparse.meleeStringParse(defender, attacker, damageInfo)
             attackInTurn[i] = initialString
-            if unitDeath[0] is True:
+            if gameturn.playerDeath is True or gameturn.monsterDeath is True:
                 break
-    return unitDeath, attackInTurn
+    return attackInTurn
             
 def fight():
+    gameturn.endCombat = False
     combatdisplay.drawEnemyApproachesWindow()
     time.sleep(2)
     combatdisplay.drawInitialCombatWindow(classes.player, classes.monster)
     time.sleep(2)
     tpr, initiator, defender =  decideTurn(classes.player, classes.monster)
-    while classes.player.curhp > 0 and classes.monster.curhp > 0:
-        unitDeath, attackInTurn = combatTurn(tpr, initiator, defender)
+    while gameturn.endCombat is False:
+        attackInTurn = combatTurn(tpr, initiator, defender)
         combatdisplay.drawInCombatWindow(classes.player, classes.monster, attackInTurn)
         time.sleep(1.5)
-        if unitDeath[0] is True:
+        if gameturn.playerDeath is True or gameturn.monsterDeath is True:
             time.sleep(1)
-            combatdisplay.drawDeathWindow(classes.player, classes.monster, unitDeath)
+            combatdisplay.drawDeathWindow(classes.player, classes.monster)
             time.sleep(2.5)
+            gameturn.doGameTurn()
             break
-        unitDeath, attackInTurn = combatTurn(1, defender, initiator)
+        attackInTurn = combatTurn(1, defender, initiator)
         combatdisplay.drawInCombatWindow(classes.player, classes.monster, attackInTurn)
         time.sleep(1.5)
-        if unitDeath[0] is True:
+        if gameturn.playerDeath is True or gameturn.monsterDeath is True:
             time.sleep(1)
-            combatdisplay.drawDeathWindow(classes.player, classes.monster, unitDeath)
-            time.sleep(2.5) 
+            combatdisplay.drawDeathWindow(classes.player, classes.monster)
+            time.sleep(2.5)
+            gameturn.doGameTurn()
             break
+        gameturn.doGameTurn()
         time.sleep(1)
-    return unitDeath
