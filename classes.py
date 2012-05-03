@@ -24,7 +24,7 @@ class Creature(Attributes):
     def calculateStats(self):
         self.maxhp      = self.con * 14
         if self.dex > self.str:
-            self.dmg    = int(self.dex//2.6)
+            self.dmg    = int(self.dex//.85)
         else:
             self.dmg    = int(self.str//1.3)
     
@@ -184,9 +184,9 @@ def chooseMonsterClass():
     monster.equip(armor)
     
 
-#                           str, con, dex, wis, int, cun, lvl
-Berserker = Attributes('berserker', 16, 11, 5, 2, 4, 3, 1)
-Warrior = Attributes('warrior', 14, 18, 7, 5, 4, 5, 1)
-Rogue = Attributes('rogue', 4, 6, 17, 4, 5, 11, 1)
-Wizard = Attributes('wizard', 3, 5, 4, 12, 22, 4, 1)
-Orc = Attributes('orc', 3, 3, 3, 3, 3, 3, 1) 
+#                                  st co de wi in cu lvl
+Berserker = Attributes('berserker', 7, 5, 3, 3, 4, 3, 1)
+Warrior     = Attributes('warrior', 4, 7, 3, 3, 3, 5, 1)
+Rogue         = Attributes('rogue', 3, 4, 7, 4, 5, 6, 1)
+Wizard       = Attributes('wizard', 2, 3, 3, 6, 8, 2, 1)
+Orc             = Attributes('orc', 2, 2, 2, 2, 2, 2, 1) 
