@@ -22,15 +22,127 @@ def getEquipBar(unit):
          equipBar = ('%s (mainhand) %s (%s ac)' % (unit.mainhandWeaponName, unit.armorName, unit.armorClass))
     return equipBar
 
-def personalBar():
-    equipBar = getEquipBar(classes.player)
-    print('%s | XP: %s [%s/%s] | str: %s con:%s dex:%s wis:%s int:%s cun:%s | turn: %s' % (classes.player.unitclass.title(), classes.player.curlvl, classes.player.curXP, levelingstats.xpToLevel[classes.player.curlvl + 1], classes.player.str, classes.player.con, classes.player.dex, classes.player.wis, classes.player.int, classes.player.cun, gameturn.gameTurnCount))
-    print(equipBar)
+def personalBar(player):
+    equipBar = getEquipBar(player)
+    pb1 = '%s | XP: %s [%s/%s] | str: %s con:%s dex:%s wis:%s int:%s cun:%s | turn: %s' % (player.unitclass.title(), player.curlvl, player.curXP, levelingstats.xpToLevel[player.curlvl + 1], player.str, player.con, player.dex, player.wis, player.int, player.cun, gameturn.gameTurnCount)
+    pb2 = equipBar
+    return pb1, pb2
 
-def gainLevel():
+def blankCombatScreen(player, monster, sleep):
+    playerHPBar = getHPBar(player)
+    monsterHPBar = getHPBar(monster)
+    pb1, pb2 = personalBar(player)
+    spacer = ' '
+    if (len(str(player.curhp)) + len(str(player.maxhp))) > 4:
+        spacer =  (' ' * ((len(str(player.curhp)) + len(str(player.maxhp))) - 4))
     print('''
 
 
+       You: %s/%s %s                                         %s: %s/%s
+       %s                                         %s
+
+
+
+
+                                                        
+
+
+                             
+                             
+                                    
+
+
+
+
+
+
+
+%s
+%s
+''' % (player.curhp, player.maxhp, spacer, monster.unitclass.title(), monster.curhp, monster.maxhp, playerHPBar, monsterHPBar, pb1, pb2))
+    time.sleep(sleep)
+
+def deathCombatScreen(player, monster, sleep):
+    playerHPBar = getHPBar(player)
+    monsterHPBar = getHPBar(monster)
+    pb1, pb2 = personalBar(player)
+    spacer = ' '
+    if (len(str(player.curhp)) + len(str(player.maxhp))) > 4:
+        spacer =  (' ' * ((len(str(player.curhp)) + len(str(player.maxhp))) - 4))
+    if gameturn.playerDeath is True:
+        deathInfo = 'You have been slain!'
+    if gameturn.monsterDeath is True:
+        deathInfo = 'The %s has been slain!' % monster.unitclass
+    print('''
+
+
+       You: %s/%s %s                                         %s: %s/%s
+       %s                                         %s
+
+
+
+
+
+                            
+                            
+                            %s
+                                                                       
+                                    
+
+
+
+
+
+
+
+%s
+%s
+''' % (player.curhp, player.maxhp, spacer, monster.unitclass.title(), monster.curhp, monster.maxhp, playerHPBar, monsterHPBar, deathInfo, pb1, pb2))
+    time.sleep(sleep)
+
+def inCombatScreen(player, monster, attacksInTurn, sleep):
+    playerHPBar = getHPBar(player)
+    monsterHPBar = getHPBar(monster)
+    pb1, pb2 = personalBar(player)
+    spacer = ' '
+    if (len(str(player.curhp)) + len(str(player.maxhp))) > 4:
+        spacer =  (' ' * ((len(str(player.curhp)) + len(str(player.maxhp))) - 4))
+    displayAttack   = { 1: ' ', 2: ' ', 3: ' ' }
+    for i in range(len(attacksInTurn)):
+        displayAttack[i] = attacksInTurn[i]
+    print('''
+
+
+       You: %s/%s %s                                         %s: %s/%s
+       %s                                         %s
+  
+
+
+
+
+                            
+                            
+        %s
+        %s
+        %s   
+                             
+                                    
+
+
+
+
+
+%s
+%s
+''' % (player.curhp, player.maxhp, spacer, monster.unitclass.title(), monster.curhp, monster.maxhp, playerHPBar, monsterHPBar, displayAttack[0], displayAttack[1], displayAttack[2], pb1, pb2))
+    time.sleep(sleep)
+    
+    
+
+def blankScreen(sleep):
+        print('''
+
+
 
 
 
@@ -40,7 +152,7 @@ def gainLevel():
                             
 
 
-                            You feel more experienced!
+                             
                              
                                     
 
@@ -53,7 +165,9 @@ def gainLevel():
 
 
 ''')
-    time.sleep(2)
+        time.sleep(sleep)
+
+def infoScreen(string, sleep):
     print('''
 
 
@@ -62,23 +176,23 @@ def gainLevel():
 
 
 
-                            
-                            
-
-
-                            You are now level %s.
-                                     
 
 
 
+ 
+                              %s
+                                    
 
 
 
 
 
 
-''' % classes.player.curlvl)
-    time.sleep(2)
+
+
+
+''' % string)
+    time.sleep(sleep)
 
 def displayInventory(unit):
     itemslot = {}
@@ -108,147 +222,3 @@ def displayInventory(unit):
 
 
 ''' %  (itemslot[1], itemslot[2], itemslot[3], itemslot[4], itemslot[5], itemslot[6], itemslot[7], itemslot[8], itemslot[9], itemslot[10], itemslot[11], itemslot[12]))
-    
-
-def drawDeathWindow(player, monster):
-    playerHPBar = getHPBar(player)
-    monsterHPBar = getHPBar(monster)
-    if gameturn.playerDeath is True:
-        print('''
-''')
-        print('         You: %s/%s' % (player.curhp, player.maxhp))
-        print('         %s' % playerHPBar)
-        print('''
-
-
-
-                            You have been slain!
-
-
-
-
-''')
-        print('                                                       %s: %s/%s' % (monster.unitclass.title(), monster.curhp, monster.maxhp))
-        print('                                                       %s' % monsterHPBar)
-        print('''
-
-
-
-
-
-
-''')
-        personalBar()
-
-    elif gameturn.monsterDeath:
-        print('''
-''')
-        print('         You: %s/%s' % (player.curhp, player.maxhp))
-        print('         %s' % playerHPBar)
-        print('''
-
-
-
-                             The %s has been slain!
-
-
-
-
-''' % monster.unitclass )
-        print('                                                       %s: %s/%s' % (monster.unitclass.title(), monster.curhp, monster.maxhp))
-        print('                                                       %s' % monsterHPBar)
-        print('''
-
-
-
-
-''')
-        personalBar()
-
-def drawEnemyApproachesWindow():
-    print('''
-
-
-
-
-
-
-
-
-
-
- 
-                              An enemy approaches!
-                                    
-
-
-
-
-
-
-
-
-
-''')
-
-def drawInitialCombatWindow(player, monster):
-    playerHPBar     = getHPBar(player)
-    playerEquipBar  = getEquipBar(player)
-    monsterHPBar    = getHPBar(monster)
-    monsterEquipBar = getEquipBar(monster)
-    print('         You: %s/%s' % (player.curhp, player.maxhp))
-    print('         %s' % playerHPBar)
-    print('''
-
-
-
-
-
-
-
-
-''')
-    print('                                                       %s: %s/%s' % (monster.unitclass.title(), monster.curhp, monster.maxhp))
-    print('                                                       %s' % monsterHPBar)
-    print('''
-
-
-
-
-''')
-    personalBar()
-
-
-
-def drawInCombatWindow(player, monster, attacksInTurn):
-    playerHPBar     = getHPBar(player)
-    playerEquipBar  = getEquipBar(player)
-    monsterHPBar    = getHPBar(monster)
-    monsterEquipBar = getEquipBar(monster)
-    displayAttack   = { 1: ' ', 2: ' ', 3: ' ' }
-    for i in range(len(attacksInTurn)):
-        displayAttack[i] = attacksInTurn[i]
-    print(' ')
-    print(' ')
-    print('         You: %s/%s' % (player.curhp, player.maxhp))
-    print('         %s' % playerHPBar)
-    print('''
-
-''')
-    print('                                    ' + tempWords[random.randint(0,(len(tempWords) - 1))].upper() + '!')
-    print('''
-
-
-
-
-''')
-    print('                                                       %s: %s/%s' % (monster.unitclass.title(), monster.curhp, monster.maxhp))
-    print('                                                       %s' % monsterHPBar)
-    print('''
-''')
-    print('         %s' % displayAttack[0])
-    print('         %s' % displayAttack[1])
-    print('         %s' % displayAttack[2])
-    print('')
-    personalBar()
-
