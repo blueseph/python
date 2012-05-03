@@ -3,6 +3,7 @@ import time
 import main
 import classes
 import combatdisplay
+import spells
 
     ###############################
     #     sets initial flags      #
@@ -48,10 +49,26 @@ def flagCheck():
         classes.player.wis    += levelingstats.levelStatInc[classes.player.unitclass][classes.player.curlvl][3]
         classes.player.int    += levelingstats.levelStatInc[classes.player.unitclass][classes.player.curlvl][4]
         classes.player.cun    += levelingstats.levelStatInc[classes.player.unitclass][classes.player.curlvl][5]
+        classes.player.calculateStats()
+        classes.player.curhp  = classes.player.maxhp
         unitGainLvl = False
         combatdisplay.gainLevel()
 
 def doGameTurn():
     global gameTurnCount
     gameTurnCount += 1
+
+    ###############################
+    #    reduces cooldown timer   #
+    #      of all things on cd    #
+    ###############################
+
+    spellToDel = []
+    for i in spells.spellCooldowns:
+        spells.spellCooldowns[i] -= 1
+        if spells.spellCooldowns[i] < 0:
+            spellToDel.append(i)
+    for i in spellToDel:
+        del spells.spellCooldowns[i]
+    
     flagCheck()
