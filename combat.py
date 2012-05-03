@@ -119,7 +119,8 @@ def combatTurn(tpr, attacker, defender):
     if defender.curhp > 0 and attacker.curhp > 0:
         for i in range(tpr):
             if attacker.unitclass is 'wizard':
-                spellInfo  = spells.castSpell(attacker, defender, 0)
+                spellToCast = spells.getSpellToCast(attacker)
+                spellInfo  = spells.castSpell(attacker, defender, spellToCast)
                 initialString = stringparse.castStringParse(attacker, defender, spellInfo)
             else:
                 damageInfo = meleeAttack(attacker, defender)
