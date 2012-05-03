@@ -132,28 +132,22 @@ def combatTurn(tpr, attacker, defender):
             
 def fight():
     gameturn.endCombat = False
-    combatdisplay.drawEnemyApproachesWindow()
-    time.sleep(2)
-    combatdisplay.drawInitialCombatWindow(classes.player, classes.monster)
-    time.sleep(2)
+    combatdisplay.infoScreen('An enemy approaches!', 2)
+    combatdisplay.blankCombatScreen(classes.player, classes.monster, 2)
     tpr, initiator, defender =  decideTurn(classes.player, classes.monster)
     while gameturn.endCombat is False:
         attackInTurn = combatTurn(tpr, initiator, defender)
-        combatdisplay.drawInCombatWindow(classes.player, classes.monster, attackInTurn)
-        time.sleep(1.5)
+        combatdisplay.inCombatScreen(classes.player, classes.monster, attackInTurn, 1.5)
         if gameturn.playerDeath is True or gameturn.monsterDeath is True:
             time.sleep(1)
-            combatdisplay.drawDeathWindow(classes.player, classes.monster)
-            time.sleep(2.5)
+            combatdisplay.deathCombatScreen(classes.player, classes.monster, 2.5)
             gameturn.doGameTurn()
             break
         attackInTurn = combatTurn(1, defender, initiator)
-        combatdisplay.drawInCombatWindow(classes.player, classes.monster, attackInTurn)
-        time.sleep(1.5)
+        combatdisplay.inCombatScreen(classes.player, classes.monster, attackInTurn, 1.5)
         if gameturn.playerDeath is True or gameturn.monsterDeath is True:
             time.sleep(1)
-            combatdisplay.drawDeathWindow(classes.player, classes.monster)
-            time.sleep(2.5)
+            combatdisplay.deathCombatScreen(classes.player, classes.monster, 2.5)
             gameturn.doGameTurn()
             break
         gameturn.doGameTurn()
