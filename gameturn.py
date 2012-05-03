@@ -52,7 +52,8 @@ def flagCheck():
         classes.player.calculateStats()
         classes.player.curhp  = classes.player.maxhp
         unitGainLvl = False
-        combatdisplay.gainLevel()
+        combatdisplay.infoScreen('You feel more experienced!', 1.5)
+        combatdisplay.infoScreen('You have reached level %s!' % classes.player.curlvl, 1.5)
 
 def doGameTurn():
     global gameTurnCount
