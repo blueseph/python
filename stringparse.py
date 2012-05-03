@@ -46,7 +46,7 @@ def castStringParse(caster, defender, spellInfo):
         if 'dmg' in spellInfo[1]:
             initialString += (' It does %s damage.' % spellInfo[5])
         elif 'heal' in spellInfo[1]:
-            initialString += ('It restores %s hitpoints.' % spellInfo[5])
+            initialString += (' It restores %s hitpoints.' % spellInfo[5])
     elif caster.type is 'monster':
         initialString = ('The %s casts %s.' % (attacker.type, spellInfo[0]))
         if 'dmg' in spellInfo[1]:
