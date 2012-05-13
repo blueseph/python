@@ -1,58 +1,54 @@
 import time
 
-def meleeStringParse(defender, attacker, damageInfo):
+def meleeStringParse(attacker, defender, critRoll, apRoll, wepTotDmg, blockRoll):
     if attacker.type is 'player':
-        if damageInfo[1][1] is True or damageInfo[2] is True:
+        if critRoll is True or apRoll is True:
             initialString = ('You attack')
         else:
             initialString = ('You attack.')
-        if damageInfo[1][1] is True:
+        if critRoll[1] is True:
             initialString = initialString + (' critically!')
-        if damageInfo[2] is True and damageInfo[1][1] is True:
+        if apRoll is True and critRoll[1] is True:
             initialString = initialString + (' You find a weakspot!')
-        elif damageInfo[2] is True and damageInfo[1][1] is False:
+        elif apRoll is True and critRoll[1] is False:
             initialString = initialString + ('. You find a weakspot!')
-        if damageInfo[4] is True:
+        if blockRoll is True:
             initialString = initialString + (' It blocks some damage!')
-        initialString = initialString + (' You did %s damage.' % damageInfo[3])
-        if damageInfo[3] <= 0:
+        initialString = initialString + (' You did %s damage.' % wepTotDmg)
+        if wepTotDmg <= 0:
             initialString = ('You attack. The attack does no damage.')
-        if damageInfo[0] is True:
-            initialString = ('You attack. The %s dodges!' % defender.type)
     elif attacker.type is 'monster':
-        if damageInfo[1][1] is True or damageInfo[2] is True:
+        if critRoll[1] is True or apRoll is True:
             initialString = ('The %s strikes' % attacker.type)
         else:
             initialString = ('The %s attacks.' % attacker.type)
-        if damageInfo[1][1] is True:
+        if critRoll[1] is True:
             initialString = initialString + (' critically!')
-        if damageInfo[2] is True and damageInfo[1][1] is True:
+        if apRoll is True and critRoll[1] is True:
             initialString = initialString + (' It finds a weakspot!')
-        elif damageInfo[2] is True and damageInfo[1][1] is False:
+        elif apRoll is True and critRoll[1] is False:
             initialString = initialString + ('. It find a weakspot!')
-        if damageInfo[4] is True:
+        if blockRoll is True:
             initialString = initialString + (' You block some damage!')
-        initialString = initialString + (' The %s did %s damage.' % (attacker.type, damageInfo[3]))
-        if damageInfo[3] <= 0:
+        initialString = initialString + (' The %s did %s damage.' % (attacker.type, wepTotDmg))
+        if wepTotDmg <= 0:
             initialString = ('The %s attacks. The attack does no damage.' % attacker.type)
-        elif damageInfo[0] is True:
-            initialString = ('The %s attacks. You dodge!' % attacker.type)
     time.sleep(.5)
     return initialString
 
-def castStringParse(caster, defender, spellInfo):
+def castStringParse(caster, defender, spell, spellmag):
     if caster.type is 'player':
-        initialString = ('You cast %s.' % spellInfo[0])
-        if 'dmg' in spellInfo[1]:
-            initialString += (' It does %s damage.' % spellInfo[5])
-        elif 'heal' in spellInfo[1]:
-            initialString += (' It restores %s hitpoints.' % spellInfo[5])
+        initialString = ('You cast %s.' % spell.name)
+        if spell.type is 'dmg':
+            initialString += (' It does %s damage.' % spellmag)
+        elif spell.type is 'heal':
+            initialString += (' It restores %s hitpoints.' % spellmag)
     elif caster.type is 'monster':
-        initialString = ('The %s casts %s.' % (attacker.type, spellInfo[0]))
-        if 'dmg' in spellInfo[1]:
-            initialString += (' It does %s damage.' % spellInfo[5])
-        elif 'heal' in spellInfo[1]:
-            initialString += ('It restores %s hitpoints.' % spellInfo[5])
+        initialString = ('The %s casts %s.' % (attacker.type, spell.name))
+        if spell.type is 'dmg':
+            initialString += (' It does %s damage.' % spellmag)
+        elif spell.type is 'heal':
+            initialString += ('It restores %s hitpoints.' % spellmag)
     return initialString
 
 def dispHP(playerhp, playermaxhp, orchp, orcmaxhp):
