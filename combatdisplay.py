@@ -3,9 +3,6 @@ import random
 import classes
 import gameturn
 import levelingstats
-import gameturn
-
-tempWords = ('bam pow ouch splat slam slice crack wham whack').split()
 
 def getHPBar(unit):
     if unit.curhp < 0:
@@ -22,19 +19,19 @@ def getEquipBar(unit):
          equipBar = ('%s (mainhand) %s (%s ac)' % (unit.mainhandWeaponName, unit.armorName, unit.armorClass))
     return equipBar
 
-def personalBar(player):
-    equipBar = getEquipBar(player)
-    pb1 = '%s | XP: %s [%s/%s] | str: %s con:%s dex:%s wis:%s int:%s cun:%s | turn: %s' % (player.unitclass.title(), player.curlvl, player.curXP, levelingstats.xpToLevel[player.curlvl + 1], player.str, player.con, player.dex, player.wis, player.int, player.cun, gameturn.gameTurnCount)
+def personalBar():
+    equipBar = getEquipBar(classes.creatures['player'])
+    pb1 = '%s | XP: %s [%s/%s] | str: %s con:%s dex:%s wis:%s int:%s cun:%s | turn: %s' % (classes.creatures['player'].unitclass.title(), classes.creatures['player'].curlvl, classes.creatures['player'].curXP, levelingstats.xpToLevel[classes.creatures['player'].curlvl + 1], classes.creatures['player'].str, classes.creatures['player'].con, classes.creatures['player'].dex, classes.creatures['player'].wis, classes.creatures['player'].int, classes.creatures['player'].cun, gameturn.gameTurnCount)
     pb2 = equipBar
     return pb1, pb2
 
-def blankCombatScreen(player, monster, sleep):
-    playerHPBar = getHPBar(player)
-    monsterHPBar = getHPBar(monster)
-    pb1, pb2 = personalBar(player)
+def blankCombatScreen(sleep):
+    playerHPBar = getHPBar(classes.creatures['player'])
+    monsterHPBar = getHPBar(classes.creatures['monster'])
+    pb1, pb2 = personalBar()
     spacer = ' '
-    if (len(str(player.curhp)) + len(str(player.maxhp))) > 4:
-        spacer =  (' ' * ((len(str(player.curhp)) + len(str(player.maxhp))) - 4))
+    if (len(str(classes.creatures['player'].curhp)) + len(str(classes.creatures['player'].maxhp))) > 4:
+        spacer =  (' ' * ((len(str(classes.creatures['player'].curhp)) + len(str(classes.creatures['player'].maxhp))) - 4))
     print('''
 
 
@@ -59,20 +56,20 @@ def blankCombatScreen(player, monster, sleep):
 
 %s
 %s
-''' % (player.curhp, player.maxhp, spacer, monster.unitclass.title(), monster.curhp, monster.maxhp, playerHPBar, monsterHPBar, pb1, pb2))
+''' % (classes.creatures['player'].curhp, classes.creatures['player'].maxhp, spacer, classes.creatures['monster'].unitclass.title(), classes.creatures['monster'].curhp, classes.creatures['monster'].maxhp, playerHPBar, monsterHPBar, pb1, pb2))
     time.sleep(sleep)
 
-def deathCombatScreen(player, monster, sleep):
-    playerHPBar = getHPBar(player)
-    monsterHPBar = getHPBar(monster)
-    pb1, pb2 = personalBar(player)
+def deathCombatScreen(sleep):
+    playerHPBar = getHPBar(classes.creatures['player'])
+    monsterHPBar = getHPBar(classes.creatures['monster'])
+    pb1, pb2 = personalBar()
     spacer = ' '
-    if (len(str(player.curhp)) + len(str(player.maxhp))) > 4:
-        spacer =  (' ' * ((len(str(player.curhp)) + len(str(player.maxhp))) - 4))
+    if (len(str(classes.creatures['player'].curhp)) + len(str(classes.creatures['player'].maxhp))) > 4:
+        spacer =  (' ' * ((len(str(classes.creatures['player'].curhp)) + len(str(classes.creatures['player'].maxhp))) - 4))
     if gameturn.playerDeath is True:
         deathInfo = 'You have been slain!'
     if gameturn.monsterDeath is True:
-        deathInfo = 'The %s has been slain!' % monster.unitclass
+        deathInfo = 'The %s has been slain!' % classes.creatures['monster'].unitclass
     print('''
 
 
@@ -97,19 +94,16 @@ def deathCombatScreen(player, monster, sleep):
 
 %s
 %s
-''' % (player.curhp, player.maxhp, spacer, monster.unitclass.title(), monster.curhp, monster.maxhp, playerHPBar, monsterHPBar, deathInfo, pb1, pb2))
+''' % (classes.creatures['player'].curhp, classes.creatures['player'].maxhp, spacer, classes.creatures['monster'].unitclass.title(), classes.creatures['monster'].curhp, classes.creatures['monster'].maxhp, playerHPBar, monsterHPBar, deathInfo, pb1, pb2))
     time.sleep(sleep)
 
-def inCombatScreen(player, monster, attacksInTurn, sleep):
-    playerHPBar = getHPBar(player)
-    monsterHPBar = getHPBar(monster)
-    pb1, pb2 = personalBar(player)
+def inCombatScreen(infostring, sleep):
+    playerHPBar = getHPBar(classes.creatures['player'])
+    monsterHPBar = getHPBar(classes.creatures['monster'])
+    pb1, pb2 = personalBar()
     spacer = ' '
-    if (len(str(player.curhp)) + len(str(player.maxhp))) > 4:
-        spacer =  (' ' * ((len(str(player.curhp)) + len(str(player.maxhp))) - 4))
-    displayAttack   = { 1: ' ', 2: ' ', 3: ' ' }
-    for i in range(len(attacksInTurn)):
-        displayAttack[i] = attacksInTurn[i]
+    if (len(str(classes.creatures['player'].curhp)) + len(str(classes.creatures['player'].maxhp))) > 4:
+        spacer =  (' ' * ((len(str(classes.creatures['player'].curhp)) + len(str(classes.creatures['player'].maxhp))) - 4))
     print('''
 
 
@@ -122,9 +116,9 @@ def inCombatScreen(player, monster, attacksInTurn, sleep):
 
                             
                             
+        
         %s
-        %s
-        %s   
+           
                              
                                     
 
@@ -134,7 +128,9 @@ def inCombatScreen(player, monster, attacksInTurn, sleep):
 
 %s
 %s
-''' % (player.curhp, player.maxhp, spacer, monster.unitclass.title(), monster.curhp, monster.maxhp, playerHPBar, monsterHPBar, displayAttack[0], displayAttack[1], displayAttack[2], pb1, pb2))
+''' % (classes.creatures['player'].curhp, classes.creatures['player'].maxhp, spacer, classes.creatures['monster'].unitclass.title(),
+       classes.creatures['monster'].curhp, classes.creatures['monster'].maxhp, playerHPBar, monsterHPBar,
+       infostring, pb1, pb2))
     time.sleep(sleep)
     
     
@@ -193,6 +189,8 @@ def infoScreen(string, sleep):
 
 ''' % string)
     time.sleep(sleep)
+
+# wip
 
 def displayInventory(unit):
     itemslot = {}
