@@ -1,6 +1,5 @@
 import levelingstats
 import time
-import main
 import classes
 import combatdisplay
 import spells
@@ -13,6 +12,7 @@ unitGainLvl = False
 playerDeath = False
 monsterDeath = False
 endCombat = False
+deathblow = False
 gameTurnCount = 0
 
 def flagCheck():
@@ -30,7 +30,8 @@ def flagCheck():
 
     if monsterDeath is True:
         endCombat = True
-        classes.player.gainXP(classes.monster.giveXP())
+        classes.creatures['player'].gainXP(classes.creatures['monster'].giveXP())
+        del classes.creatures['monster']
         monsterDeath = False
 
     if playerDeath is True:
@@ -42,34 +43,57 @@ def flagCheck():
     ###############################
 
     if unitGainLvl is True:
-        classes.player.curlvl += 1
-        classes.player.str    += levelingstats.levelStatInc[classes.player.unitclass][classes.player.curlvl][0]
-        classes.player.con    += levelingstats.levelStatInc[classes.player.unitclass][classes.player.curlvl][1]
-        classes.player.dex    += levelingstats.levelStatInc[classes.player.unitclass][classes.player.curlvl][2]
-        classes.player.wis    += levelingstats.levelStatInc[classes.player.unitclass][classes.player.curlvl][3]
-        classes.player.int    += levelingstats.levelStatInc[classes.player.unitclass][classes.player.curlvl][4]
-        classes.player.cun    += levelingstats.levelStatInc[classes.player.unitclass][classes.player.curlvl][5]
-        classes.player.calculateStats()
-        classes.player.curhp  = classes.player.maxhp
+        classes.creatures['player'].curlvl += 1
+        classes.creatures['player'].str    += levelingstats.levelStatInc[classes.creatures['player'].unitclass][classes.creatures['player'].curlvl][0]
+        classes.creatures['player'].con    += levelingstats.levelStatInc[classes.creatures['player'].unitclass][classes.creatures['player'].curlvl][1]
+        classes.creatures['player'].dex    += levelingstats.levelStatInc[classes.creatures['player'].unitclass][classes.creatures['player'].curlvl][2]
+        classes.creatures['player'].wis    += levelingstats.levelStatInc[classes.creatures['player'].unitclass][classes.creatures['player'].curlvl][3]
+        classes.creatures['player'].int    += levelingstats.levelStatInc[classes.creatures['player'].unitclass][classes.creatures['player'].curlvl][4]
+        classes.creatures['player'].cun    += levelingstats.levelStatInc[classes.creatures['player'].unitclass][classes.creatures['player'].curlvl][5]
+        classes.creatures['player'].calculateStats()
+        classes.creatures['player'].curhp  = classes.creatures['player'].maxhp
         unitGainLvl = False
         combatdisplay.infoScreen('You feel more experienced!', 1.5)
-        combatdisplay.infoScreen('You have reached level %s!' % classes.player.curlvl, 1.5)
+        combatdisplay.infoScreen('You have reached level %s!' % classes.creatures['player'].curlvl, 1.5)
 
 def doGameTurn():
     global gameTurnCount
     gameTurnCount += 1
 
+    spellsToRemove = []
+    buffsToRemove = []
+    for creature in classes.creatures:
+
     ###############################
-    #    reduces cooldown timer   #
-    #      of all things on cd    #
+    #    reduce spell cooldowns   #
     ###############################
 
-    spellToDel = []
-    for i in spells.spellCooldowns:
-        spells.spellCooldowns[i] -= 1
-        if spells.spellCooldowns[i] < 0:
-            spellToDel.append(i)
-    for i in spellToDel:
-        del spells.spellCooldowns[i]
-    
+        for spell in classes.creatures[creature].spellCooldowns:
+            classes.creatures[creature].spellCooldowns[spell] -= 1
+            if classes.creatures[creature].spellCooldowns[spell] < 0:
+                spellsToRemove.append(spell)
+        for spell in spellsToRemove:
+            del classes.creatures[creature].spellCooldowns[spell]
+
+    ###############################
+    #    reduce buff duration     #
+    ###############################
+
+        for buff in classes.creatures[creature].buffDuration:
+            classes.creatures[creature].buffDuration[buff] =- 1
+            if classes.creatures[creature].buffDuration[buff] < 0:
+                BuffsToRemove.append(buff)
+        for buff in classes.creatures[creature].initBuffs:
+            if buff in buffsToRemove:
+                classes.creatures[creature].initBuffs.remove(buff)
+        for buff in classes.creatures[creature].midBuffs:
+            if buff in buffsToRemove:
+                classes.creatures[creature].midBuffs.remove(buff)
+        for buff in classes.creatures[creature].endBuffs:
+            if buff in buffsToRemove:
+                classes.creatures[creature].endBuffs.remove(buff) 
+        for buff in buffsToRemove:
+            del classes.creatures[creature].buffDuration[buff]
+        classes.creatures[creatures].resetStats()
+
     flagCheck()
