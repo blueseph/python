@@ -12,16 +12,16 @@ def getHPBar(unit):
 
 def getEquipBar(unit):
     if unit.offhand is not None:
-        equipBar = ('%s (mainhand) %s (offhand), %s (%s ac)' % (unit.mainhandWeaponName, unit.offhandItemName, unit.armorName, unit.armorClass))
+        equipBar = ('%s (mainhand) %s (offhand) | %s (%s ac)' % (unit.mainhandWeaponName, unit.offhandItemName, unit.armorName, unit.armorClass))
     elif unit.mainhand is '2h':
-         equipBar = ('%s (two-handed) %s (%s ac)' % (unit.mainhandWeaponName, unit.armorName, unit.armorClass))
+         equipBar = ('%s (two-handed) | %s (%s ac)' % (unit.mainhandWeaponName, unit.armorName, unit.armorClass))
     else:
-         equipBar = ('%s (mainhand) %s (%s ac)' % (unit.mainhandWeaponName, unit.armorName, unit.armorClass))
+         equipBar = ('%s (mainhand) |  %s (%s ac)' % (unit.mainhandWeaponName, unit.armorName, unit.armorClass))
     return equipBar
 
 def personalBar():
     equipBar = getEquipBar(classes.creatures['player'])
-    pb1 = '%s | XP: %s [%s/%s] | str: %s con:%s dex:%s wis:%s int:%s cun:%s | turn: %s' % (classes.creatures['player'].unitclass.title(), classes.creatures['player'].curlvl, classes.creatures['player'].curXP, levelingstats.xpToLevel[classes.creatures['player'].curlvl + 1], classes.creatures['player'].str, classes.creatures['player'].con, classes.creatures['player'].dex, classes.creatures['player'].wis, classes.creatures['player'].int, classes.creatures['player'].cun, gameturn.gameTurnCount)
+    pb1 = '%s | XP: %s [%s/%s] | ST: %s CO:%s DX:%s WI:%s IN:%s CU:%s | T: %s' % (classes.creatures['player'].unitclass.title(), classes.creatures['player'].curlvl, classes.creatures['player'].curXP, levelingstats.xpToLevel[classes.creatures['player'].curlvl + 1], classes.creatures['player'].str, classes.creatures['player'].con, classes.creatures['player'].dex, classes.creatures['player'].wis, classes.creatures['player'].int, classes.creatures['player'].cun, gameturn.gameTurnCount)
     pb2 = equipBar
     return pb1, pb2
 
@@ -138,7 +138,7 @@ def inCombatScreen(infostring, sleep):
 def blankScreen(sleep):
         print('''
 
-
+ 
 
 
 
