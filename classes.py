@@ -8,11 +8,12 @@ import combatdisplay
 import spells
 import stringparse
 from operator import itemgetter
+from constants import *
 
 creatures = {}
 
 class Attributes:
-    def __init__(self, unitclass, str, con, dex, wis, int, cun, curlvl):
+    def __init__(self, unitclass, str, con, dex, wis, int, cun, curlvl, display):
         self.unitclass  = unitclass
         self.str        = str
         self.con        = con
@@ -20,7 +21,8 @@ class Attributes:
         self.wis        = wis
         self.int        = int
         self.cun        = cun
-        self. curlvl    = curlvl
+        self.curlvl     = curlvl
+        self.display    = display
 
 class Creature(Attributes):
     
@@ -47,14 +49,15 @@ class Creature(Attributes):
         self.cun = self.currentStats['cun']
 
     def calculateStats(self):
-        self.maxhp      = self.con * 14
+        self.maxhp      = self.con * CONSTITUTION_MULT
         if self.dex > self.str:
-            self.dmg    = int(self.dex//.85)
+            self.dmg    = int(self.dex//WEP_DEX_BONUS)
         else:
-            self.dmg    = int(self.str//1.3)
+            self.dmg    = int(self.str//WEP_STR_BONUS)
         self.recordStats()
     
     def __init__(self, Attributes):
+        self.display            = Attributes.display
         self.unitclass          = Attributes.unitclass
         self.str                = Attributes.str
         self.con                = Attributes.con
@@ -70,6 +73,8 @@ class Creature(Attributes):
             self.atype          = 'melee'
         self.calculateStats()
         self.curhp              = self.maxhp
+        self.xPos               = 10
+        self.yPos               = 10
         self.mainhand           = None
         self.offhand            = None
         self.offhandWeight      = 0
@@ -150,6 +155,7 @@ class Creature(Attributes):
     
     def giveXP(self):
         return int(10 + (self.curlvl ** 3.05))
+        #int(random.randint((i+5), (i+8)) + (((i+2) ** 4)/6))
 
     ###############################
     #       spell system          #
@@ -211,9 +217,6 @@ class Creature(Attributes):
         return spellToCast
             
     def cast(self, spell, target):
-        if self.checkActiveBuffs is True:         #checks for active ability
-            for buff in self.activeBuffs:
-                self.applyBuff()
         if spell in self.dmgSpells:
             spellMag = int(random.randint(spell.base[0], spell.base[1]) + (self.int * spell.scaling))
             target.curhp -= spellMag
@@ -290,7 +293,6 @@ class Creature(Attributes):
         self.endBuff(wepTotDmg)
         target.curhp -= wepTotDmg
         combat.determineDeath(target)
-        combatdisplay.inCombatScreen(stringparse.meleeStringParse(self, target, critRoll, apRoll, wepTotDmg, blockRoll), 1.5)
 
     ###############################
     #       buffs system          #
@@ -344,32 +346,57 @@ class Creature(Attributes):
     def useAbility(self, ability):
         if ability in self.dmgAbilities:
             pass
+
+    ###############################
+    #       movement system       #
+    ###############################
+
+    def setInitSpawn(self):
+        self.xPos = random.randint(8, BOARD_WIDTH - 10)
+        self.yPos = random.randint(4, BOARD_HEIGHT - 6)
+
+    def collisionCheck(self, dx, dy):
+        for creature in creatures:
+            if creatures[creature] is self:
+                pass
+            elif self.xPos + dx is creatures[creature].xPos and self.yPos + dy is creatures[creature].yPos:
+                return True, creatures[creature]
+                print(creatures[creature])
+                break
+        return False, None
+
+    def move(self, dx, dy): # delta x and y
+        collide, target = self.collisionCheck(dx, dy)
+        if collide is True:
+            self.melee(target)
+        else:
+            self.xPos += dx
+            self.yPos += dy
         
 class Player(Creature): 
     def __init__(self, Creature):
-        self.unitclass      = Creature.unitclass
-        self.str            = Creature.str
-        self.type           = 'player'
-        self.con            = Creature.con
-        self.dex            = Creature.dex
-        self.wis            = Creature.wis
-        self.int            = Creature.int
-        self.cun            = Creature.cun
-        if self.unitclass is 'wizard':
-            self.atype      = 'magic'
-        else:
-            self.atype      = 'melee'
-        self.curlvl         = Creature.curlvl
+        self.display            = '@'
+        self.unitclass          = Creature.unitclass
+        self.str                = Creature.str
+        self.type               = 'player'
+        self.con                = Creature.con
+        self.dex                = Creature.dex
+        self.wis                = Creature.wis
+        self.int                = Creature.int
+        self.cun                = Creature.cun
+        self.curlvl             = Creature.curlvl
         if self.curlvl is 1:
-            self.curXP      = 0
+            self.curXP          = 0
         else:
-            self.curXP      = levelingstats.xpToLevel[self.curLvl - 1]
+            self.curXP          = levelingstats.xpToLevel[self.curLvl - 1]
         self.calculateStats()
-        self.curhp          = self.maxhp
-        self.mainhand       = None
-        self.offhand        = None
-        self.offhandWeight  = 0
-        self.armorWeight    = 0
+        self.curhp              = self.maxhp
+        self.xPos               = 9
+        self.yPos               = 10
+        self.mainhand           = None
+        self.offhand            = None
+        self.offhandWeight      = 0
+        self.armorWeight        = 0
         self.inventory          = []
         self.spells             = []
         self.spellCooldowns     = {}
@@ -458,6 +485,7 @@ w: Wizard (INT, WIS)
         player.getSpell(spells.Fireball)
         player.getSpell(spells.Magic_missile)
         player.getSpell(spells.Heal)
+    player.setInitSpawn()
     creatures['player'] = player
 
 def chooseMonsterClass():
@@ -469,11 +497,12 @@ def chooseMonsterClass():
     monster.addInventoryItem(armor)
     monster.equip(weapon)
     monster.equip(armor)
+    monster.setInitSpawn()
     creatures['monster'] = monster
     
-#                                  st co de wi in cu lvl
-Berserker = Attributes('berserker', 7, 5, 3, 3, 4, 3, 1)
-Warrior     = Attributes('warrior', 4, 7, 3, 3, 3, 5, 1)
-Rogue         = Attributes('rogue', 3, 4, 7, 4, 5, 6, 1)
-Wizard       = Attributes('wizard', 2, 3, 3, 6, 8, 2, 1)
-Orc             = Attributes('orc', 2, 2, 2, 2, 2, 2, 1) 
+#                                  st co de wi in cu lvl disp
+Berserker = Attributes('berserker', 7, 5, 3, 3, 4, 3, 1, '@')
+Warrior     = Attributes('warrior', 4, 7, 3, 3, 3, 5, 1, '@')
+Rogue         = Attributes('rogue', 3, 4, 7, 4, 5, 6, 1, '@')
+Wizard       = Attributes('wizard', 2, 3, 3, 6, 8, 2, 1, '@')
+Orc             = Attributes('orc', 2, 2, 2, 2, 2, 2, 1, 'o') 
