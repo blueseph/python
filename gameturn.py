@@ -3,6 +3,7 @@ import time
 import classes
 import combatdisplay
 import spells
+import board
 
     ###############################
     #     sets initial flags      #
@@ -94,6 +95,7 @@ def doGameTurn():
                 classes.creatures[creature].endBuffs.remove(buff) 
         for buff in buffsToRemove:
             del classes.creatures[creature].buffDuration[buff]
-        classes.creatures[creatures].resetStats()
+        classes.creatures[creature].resetStats()
 
     flagCheck()
+    board.current_dungeon_map[1].draw()
