@@ -90,8 +90,6 @@ class Ability():
         self.cooldown       = cooldown
         self.buffplaced     = buffplaced
 
-
-
     ###############################
     #       abilities list        #
     ###############################
