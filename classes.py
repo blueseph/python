@@ -7,10 +7,12 @@ import combat
 import combatdisplay
 import spells
 import stringparse
+import savegame
+import time
 from operator import itemgetter
 from constants import *
-
-creatures = {}
+from msvcrt import getch
+import os
 
 class Attributes:
     def __init__(self, unitclass, str, con, dex, wis, int, cun, curlvl, display):
@@ -75,6 +77,7 @@ class Creature(Attributes):
         self.curhp              = self.maxhp
         self.xPos               = 10
         self.yPos               = 10
+        self.prevPosition       = self.xPos, self.yPos
         self.mainhand           = None
         self.offhand            = None
         self.offhandWeight      = 0
@@ -351,24 +354,84 @@ class Creature(Attributes):
     #       movement system       #
     ###############################
 
+    def pathfind(self):
+        pathFound = False
+        xDest, yDest, moves = savegame.creatures['player'].xPos, savegame.creatures['player'].yPos, 0
+        while pathFound is False:
+            delList = []
+            currentOptions = []
+            lowestManNum = []
+            bestOption = []
+            moveUp      = (self.xPos, self.yPos + 1, 10, (abs(xDest - self.xPos) + abs(yDest - (self.yPos + 1))))
+            moveDown    = (self.xPos, self.yPos - 1, 10, (abs(xDest - self.xPos) + abs(yDest - (self.yPos - 1))))
+            moveRight   = (self.xPos + 1, self.yPos, 10, (abs(xDest - (self.xPos + 1)) + abs(yDest - self.yPos)))
+            moveLeft    = (self.xPos - 1, self.yPos, 10, (abs(xDest - (self.xPos - 1)) + abs(yDest - self.yPos)))
+            currentOptions.append(moveUp)
+            currentOptions.append(moveDown)
+            currentOptions.append(moveLeft)
+            currentOptions.append(moveRight)
+            for cell in currentOptions:                                                                 #removes cells that are impassable
+                if savegame.current_dungeon_map[1].CURRENTMAP[cell[1]][cell[0]].passable is False: 
+                    delList.append(cell)
+            for cell in delList:                                                                        #prevents moving opposite a blocked path from being the ideal path if other moves available
+                if cell == moveUp:
+                    currentOptions.remove(moveDown)
+                    moveDown = (moveDown[0], moveDown[1], moveDown[2], (moveDown[3] + .1))
+                    currentOptions.append(moveDown)
+                if cell == moveDown:
+                    currentOptions.remove(moveUp)
+                    moveUp= (moveUp[0], moveUp[1], moveUp[2], (moveUp[3] + .1))
+                    currentOptions.append(moveUp)
+                if cell == moveRight:
+                    currentOptions.remove(moveLeft)
+                    moveLeft = (moveLeft[0], moveLeft[1], moveLeft[2], (moveLeft[3] + .1))
+                    currentOptions.append(moveLeft)
+                if cell == moveLeft:
+                    currentOptions.remove(moveRight)
+                    moveRight = (moveRight[0], moveRight[1], moveRight[2], (moveRight[3] + .1))
+                    currentOptions.append(moveRight)
+                currentOptions.remove(cell)
+            delList = []
+            for cell in currentOptions:                                                                 #checks for lowest distance to destination
+                lowestManNum.append(cell[2] + cell[3])
+            lowestManNum = sorted(lowestManNum)
+            lowestManNum = lowestManNum[0]
+            for cell in currentOptions:                                                                 #determines all cells with lowest distance
+                if (cell[2] + cell[3]) <= lowestManNum:
+                    bestOption.append(cell)
+            if len(bestOption) > 1:                                                                     #if more than one cell
+                for cell in bestOption:
+                    if (cell[0], cell[1]) == (self.prevPosition[0], self.prevPosition[1]):              #checks if this cell was previously traversed. if so, avoid this space (prevents getting stuck)
+                        delList.append(cell)
+            for cell in delList:
+                bestOption.remove(cell)
+            bestOption = bestOption[random.randint(0, len(bestOption) - 1)]                             #randomly chooses one of the two cells
+            pathFound = True
+        return bestOption[1], bestOption[0]                                                       
+
+
     def setInitSpawn(self):
         self.xPos = random.randint(8, BOARD_WIDTH - 10)
         self.yPos = random.randint(4, BOARD_HEIGHT - 6)
 
     def collisionCheck(self, dx, dy):
-        for creature in creatures:
-            if creatures[creature] is self:
+        for creature in savegame.creatures:
+            if savegame.creatures[creature] is self:
                 pass
-            elif self.xPos + dx is creatures[creature].xPos and self.yPos + dy is creatures[creature].yPos:
-                return True, creatures[creature]
-                print(creatures[creature])
+            elif self.xPos + dx is savegame.creatures[creature].xPos and self.yPos + dy is savegame.creatures[creature].yPos:
+                return True, savegame.creatures[creature]
                 break
         return False, None
 
     def move(self, dx, dy): # delta x and y
+        self.prevPosition = self.xPos, self.yPos
         collide, target = self.collisionCheck(dx, dy)
         if collide is True:
-            self.melee(target)
+            if self.type is 'monster' and target.type is 'monster':
+                pass
+            else:
+                self.melee(target)
+                print('%s vs %s' % (self.type, target.type))
         else:
             self.xPos += dx
             self.yPos += dy
@@ -391,7 +454,7 @@ class Player(Creature):
             self.curXP          = levelingstats.xpToLevel[self.curLvl - 1]
         self.calculateStats()
         self.curhp              = self.maxhp
-        self.xPos               = 9
+        self.xPos               = 8
         self.yPos               = 10
         self.mainhand           = None
         self.offhand            = None
@@ -430,65 +493,66 @@ class Player(Creature):
         if self.curXP > levelingstats.xpToLevel[self.curlvl + 1]:
             gameturn.unitGainLvl = True
 
-def chooseClass():
-    print('Choose your class')
-    print(' ')
-    print('''B: Berserker (STR, CON)
-R: Rogue (DEX, CUN)
-W: Warrior (CON, STR)
-w: Wizard (INT, WIS)
-''')
-    playerClass = None
-    while playerClass is None:
-        playerClass = input()
-        if playerClass.startswith('W'):
-            playerClass         = Warrior
-            weapon          = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 0))
-            armor           = equipment.Armor(*equipment.chooseArmor(itemlist.armor_list, 4))
-            offhand         = equipment.Shield(*equipment.chooseShield(itemlist.shield_list, 1))
-            hasOffhand      = True
-        elif playerClass.startswith('B'):
-            playerClass = Berserker
-            weapon          = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 5))
-            armor           = equipment.Armor(*equipment.chooseArmor(itemlist.armor_list, 2))
-            hasOffhand      = False
-        elif playerClass.startswith('R'):
-            playerClass = Rogue
-            weapon          = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 3))
-            offhand         = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 3))
-            armor           = equipment.Armor(*equipment.chooseArmor(itemlist.armor_list, 1))
-            hasOffhand = True
-        elif playerClass.startswith('w'):
-            playerClass = Wizard
-            weapon          = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 8))
-            armor           = equipment.Armor(*equipment.chooseArmor(itemlist.armor_list, 0))
-            hasOffhand = False
-        else:
-            playerClass = None
-            print('Choose your class')
-            print(' ')
-            print('''B: Berserker (STR, CON)
-R: Rogue (DEX, CUN)
-W: Warrior (CON, STR)
-w: Wizard (INT, WIS)
-''')
-            print('Please choose a valid response')
-    player = Player(Creature(playerClass))
-    player.addInventoryItem(weapon)
-    player.addInventoryItem(armor)
-    player.equip(weapon) 
-    player.equip(armor)
-    if hasOffhand is True:
-        player.equip(offhand)
-        player.addInventoryItem(offhand)
-    if player.unitclass is 'wizard':
-        player.getSpell(spells.Fireball)
-        player.getSpell(spells.Magic_missile)
-        player.getSpell(spells.Heal)
-    player.setInitSpawn()
-    creatures['player'] = player
+def spawnPlayer():
+    classChosen = False
+    arrow = 1
+    combatdisplay.spawnPlayerScreen(arrow)
+    while classChosen is False:
+        input = getch()
+        if 'w' in str(input): 
+            arrow -= 1
+            if arrow < 1:
+                arrow = 1
+        elif 's' in str(input):
+            arrow += 1
+            if arrow > 4:
+                arrow = 4
+        elif 'xff' in str(input): #debug
+            arrow += 1
+            if arrow > 4:
+                arrow = 4
+        elif '\\r' in str(input):
+            classChosen = True
+            if arrow == 1: # zerker
+                playerClass     = Berserker
+                weapon          = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 5))
+                armor           = equipment.Armor(*equipment.chooseArmor(itemlist.armor_list, 2))
+                hasOffhand      = False
+            if arrow == 2: # warrior
+                playerClass     = Warrior
+                weapon          = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 0))
+                armor           = equipment.Armor(*equipment.chooseArmor(itemlist.armor_list, 4))
+                offhand         = equipment.Shield(*equipment.chooseShield(itemlist.shield_list, 1))
+                hasOffhand      = True
+            if arrow == 3: # rogue
+                playerClass     = Rogue
+                weapon          = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 3))
+                offhand         = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 3))
+                armor           = equipment.Armor(*equipment.chooseArmor(itemlist.armor_list, 1))
+                hasOffhand = True
+            if arrow == 4: # wizard
+                playerClass     = Wizard
+                weapon          = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 8))
+                armor           = equipment.Armor(*equipment.chooseArmor(itemlist.armor_list, 0))
+                hasOffhand = False
+            player = Player(Creature(playerClass))
+            player.addInventoryItem(weapon)
+            player.addInventoryItem(armor)
+            player.equip(weapon) 
+            player.equip(armor)
+            if hasOffhand is True:
+                player.equip(offhand)
+                player.addInventoryItem(offhand)
+            if player.unitclass is 'wizard':
+                player.getSpell(spells.Fireball)
+                player.getSpell(spells.Magic_missile)
+                player.getSpell(spells.Heal)
+            player.setInitSpawn()
+            savegame.creatures['player'] = player
+            break
+        combatdisplay.spawnPlayerScreen(arrow)
 
-def chooseMonsterClass():
+def spawnMonster():
     monsterClass = Orc
     monster = Creature(monsterClass)
     weapon = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, random.randint(0, 7)))
@@ -498,7 +562,12 @@ def chooseMonsterClass():
     monster.equip(weapon)
     monster.equip(armor)
     monster.setInitSpawn()
-    creatures['monster'] = monster
+    for i in range(0, (len(savegame.creatures) + 1)):
+        try:
+            savegame.creatures[i]
+        except KeyError:
+            savegame.creatures[i] = monster
+            break
     
 #                                  st co de wi in cu lvl disp
 Berserker = Attributes('berserker', 7, 5, 3, 3, 4, 3, 1, '@')

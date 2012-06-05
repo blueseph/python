@@ -1,8 +1,6 @@
 import time
 import random
-import classes
-import gameturn
-import levelingstats
+import savegame
 
 def getHPBar(unit):
     if unit.curhp < 0:
@@ -10,28 +8,56 @@ def getHPBar(unit):
     HPBarString = ('[' + ('-' * round((unit.curhp / unit.maxhp) * 10) + (' ' * (10 - round((unit.curhp / unit.maxhp) * 10)) + ']' )))
     return HPBarString
 
-def getEquipBar(unit):
-    if unit.offhand is not None:
-        equipBar = ('%s (mainhand) %s (offhand) | %s (%s ac)' % (unit.mainhandWeaponName, unit.offhandItemName, unit.armorName, unit.armorClass))
-    elif unit.mainhand is '2h':
-         equipBar = ('%s (two-handed) | %s (%s ac)' % (unit.mainhandWeaponName, unit.armorName, unit.armorClass))
-    else:
-         equipBar = ('%s (mainhand) |  %s (%s ac)' % (unit.mainhandWeaponName, unit.armorName, unit.armorClass))
-    return equipBar
+def spawnPlayerScreen(input):
+    arrow1 = ' '
+    arrow2 = ' '
+    arrow3 = ' '
+    arrow4 = ' '
+    if input == 1:
+        arrow1 = '>'
+    if input == 2:
+        arrow2 = '>'
+    if input == 3:
+        arrow3 = '>'
+    if input == 4:
+        arrow4 = '>'
+    print('''
 
-def personalBar():
-    equipBar = getEquipBar(classes.creatures['player'])
-    pb1 = '%s | XP: %s [%s/%s] | ST: %s CO:%s DX:%s WI:%s IN:%s CU:%s | T: %s' % (classes.creatures['player'].unitclass.title(), classes.creatures['player'].curlvl, classes.creatures['player'].curXP, levelingstats.xpToLevel[classes.creatures['player'].curlvl + 1], classes.creatures['player'].str, classes.creatures['player'].con, classes.creatures['player'].dex, classes.creatures['player'].wis, classes.creatures['player'].int, classes.creatures['player'].cun, gameturn.gameTurnCount)
-    pb2 = equipBar
-    return pb1, pb2
+ 
+
+
+
+
+                                choose ur dude
+                                
+
+
+%s                                  Berserker
+                (Prefers two-handed combat. Sturdy and hits hard.)
+
+
+%s                                  Warrior   
+                    (Uses a sword and shield. Very sturdy.)
+
+
+%s                                  Rogue     
+                (Uses two weapons. Hits hard, but very frail)  
+
+
+%s                                  Wizard    
+                    (Prefers spells. Can heal and damage)
+
+
+''' % (arrow1, arrow2, arrow3, arrow4))
+
 
 def blankCombatScreen(sleep):
-    playerHPBar = getHPBar(classes.creatures['player'])
-    monsterHPBar = getHPBar(classes.creatures['monster'])
+    playerHPBar = getHPBar(savegame.creatures['player'])
+    monsterHPBar = getHPBar(savegame.creatures['monster'])
     pb1, pb2 = personalBar()
     spacer = ' '
-    if (len(str(classes.creatures['player'].curhp)) + len(str(classes.creatures['player'].maxhp))) > 4:
-        spacer =  (' ' * ((len(str(classes.creatures['player'].curhp)) + len(str(classes.creatures['player'].maxhp))) - 4))
+    if (len(str(savegame.creatures['player'].curhp)) + len(str(savegame.creatures['player'].maxhp))) > 4:
+        spacer =  (' ' * ((len(str(savegame.creatures['player'].curhp)) + len(str(savegame.creatures['player'].maxhp))) - 4))
     print('''
 
 
@@ -56,20 +82,20 @@ def blankCombatScreen(sleep):
 
 %s
 %s
-''' % (classes.creatures['player'].curhp, classes.creatures['player'].maxhp, spacer, classes.creatures['monster'].unitclass.title(), classes.creatures['monster'].curhp, classes.creatures['monster'].maxhp, playerHPBar, monsterHPBar, pb1, pb2))
+''' % (savegame.creatures['player'].curhp, savegame.creatures['player'].maxhp, spacer, savegame.creatures['monster'].unitclass.title(), savegame.creatures['monster'].curhp, savegame.creatures['monster'].maxhp, playerHPBar, monsterHPBar, pb1, pb2))
     time.sleep(sleep)
 
 def deathCombatScreen(sleep):
-    playerHPBar = getHPBar(classes.creatures['player'])
-    monsterHPBar = getHPBar(classes.creatures['monster'])
+    playerHPBar = getHPBar(savegame.creatures['player'])
+    monsterHPBar = getHPBar(savegame.creatures['monster'])
     pb1, pb2 = personalBar()
     spacer = ' '
-    if (len(str(classes.creatures['player'].curhp)) + len(str(classes.creatures['player'].maxhp))) > 4:
-        spacer =  (' ' * ((len(str(classes.creatures['player'].curhp)) + len(str(classes.creatures['player'].maxhp))) - 4))
+    if (len(str(savegame.creatures['player'].curhp)) + len(str(savegame.creatures['player'].maxhp))) > 4:
+        spacer =  (' ' * ((len(str(savegame.creatures['player'].curhp)) + len(str(savegame.creatures['player'].maxhp))) - 4))
     if gameturn.playerDeath is True:
         deathInfo = 'You have been slain!'
     if gameturn.monsterDeath is True:
-        deathInfo = 'The %s has been slain!' % classes.creatures['monster'].unitclass
+        deathInfo = 'The %s has been slain!' % savegame.creatures['monster'].unitclass
     print('''
 
 
@@ -94,16 +120,16 @@ def deathCombatScreen(sleep):
 
 %s
 %s
-''' % (classes.creatures['player'].curhp, classes.creatures['player'].maxhp, spacer, classes.creatures['monster'].unitclass.title(), classes.creatures['monster'].curhp, classes.creatures['monster'].maxhp, playerHPBar, monsterHPBar, deathInfo, pb1, pb2))
+''' % (savegame.creatures['player'].curhp, savegame.creatures['player'].maxhp, spacer, savegame.creatures['monster'].unitclass.title(), savegame.creatures['monster'].curhp, savegame.creatures['monster'].maxhp, playerHPBar, monsterHPBar, deathInfo, pb1, pb2))
     time.sleep(sleep)
 
 def inCombatScreen(infostring, sleep):
-    playerHPBar = getHPBar(classes.creatures['player'])
-    monsterHPBar = getHPBar(classes.creatures['monster'])
+    playerHPBar = getHPBar(savegame.creatures['player'])
+    monsterHPBar = getHPBar(savegame.creatures['monster'])
     pb1, pb2 = personalBar()
     spacer = ' '
-    if (len(str(classes.creatures['player'].curhp)) + len(str(classes.creatures['player'].maxhp))) > 4:
-        spacer =  (' ' * ((len(str(classes.creatures['player'].curhp)) + len(str(classes.creatures['player'].maxhp))) - 4))
+    if (len(str(savegame.creatures['player'].curhp)) + len(str(savegame.creatures['player'].maxhp))) > 4:
+        spacer =  (' ' * ((len(str(savegame.creatures['player'].curhp)) + len(str(savegame.creatures['player'].maxhp))) - 4))
     print('''
 
 
@@ -128,8 +154,8 @@ def inCombatScreen(infostring, sleep):
 
 %s
 %s
-''' % (classes.creatures['player'].curhp, classes.creatures['player'].maxhp, spacer, classes.creatures['monster'].unitclass.title(),
-       classes.creatures['monster'].curhp, classes.creatures['monster'].maxhp, playerHPBar, monsterHPBar,
+''' % (savegame.creatures['player'].curhp, savegame.creatures['player'].maxhp, spacer, savegame.creatures['monster'].unitclass.title(),
+       savegame.creatures['monster'].curhp, savegame.creatures['monster'].maxhp, playerHPBar, monsterHPBar,
        infostring, pb1, pb2))
     time.sleep(sleep)
     
