@@ -51,14 +51,3 @@ def castStringParse(caster, defender, spell, spellmag):
             initialString += ('It restores %s hitpoints.' % spellmag)
     return initialString
 
-def dispHP(playerhp, playermaxhp, orchp, orcmaxhp):
-    if playerhp < 0:
-        playerhp = 0
-    if orchp < 0:
-        orchp = 0
-    print(' ')
-    time.sleep(1)
-    print('         You: (%s/%s HP)       Him: (%s/%s HP)' % (playerhp, playermaxhp, orchp, orcmaxhp) )
-    time.sleep(1.5)
-    print(' ')
-

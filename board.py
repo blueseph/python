@@ -7,12 +7,6 @@ import gameturn
 import levelingstats
 from constants import *
 
-#create room in center
-#randomly place a corridor on edge of room
-#have corridor lead to another room
-#have room check for availability. if available create room
-#repeat 
-
 def getEquipBar(unit):
     if unit.offhand is not None:
         equipBar = ('%s (mainhand) %s (offhand) | %s (%s ac)' % (unit.mainhandWeaponName, unit.offhandItemName, unit.armorName, unit.armorClass))
@@ -22,11 +16,16 @@ def getEquipBar(unit):
          equipBar = ('%s (mainhand) |  %s (%s ac)' % (unit.mainhandWeaponName, unit.armorName, unit.armorClass))
     return equipBar
 
-def personalBar():
-    equipBar = getEquipBar(savegame.creatures['player'])
-    pb1 = '%s | XP: %s [%s/%s] | ST: %s CO:%s DX:%s WI:%s IN:%s CU:%s | T: %s' % (savegame.creatures['player'].unitclass.title(), savegame.creatures['player'].curlvl, savegame.creatures['player'].curXP, levelingstats.xpToLevel[savegame.creatures['player'].curlvl + 1], savegame.creatures['player'].str, savegame.creatures['player'].con, savegame.creatures['player'].dex, savegame.creatures['player'].wis, savegame.creatures['player'].int, savegame.creatures['player'].cun, gameturn.gameTurnCount)
-    pb2 = equipBar
-    return pb1, pb2
+def bottomMenu():
+    fl = '      Character    |   Inventory   |   Abilities   |    Spells    |   Menu'
+    sl = '         [c]       |      [i]      |      [z]      |      [Z]     |   [m]'
+    return fl, sl
+
+def getHPBar(unit):
+    if unit.curhp < 0:
+        unit.curhp = 0
+    HPBarString = ('[' + ('-----' * round((unit.curhp / unit.maxhp) * 10) + ('     ' * (10 - round((unit.curhp / unit.maxhp) * 10)) + ']' )))
+    return HPBarString
 
 class Tile:
 	def __init__(self, passable, display, tile):
@@ -46,7 +45,7 @@ class Map:
 		self.displayMap = copy.deepcopy(self.CURRENTMAP)
 		#y,x
 					
-	def draw(self):
+	def draw(self, combat=' '):
 		os.system("cls")
 		for creature in savegame.creatures:
 			if self.CURRENTMAP[savegame.creatures[creature].yPos][savegame.creatures[creature].xPos].passable is 'impassable':
@@ -54,8 +53,7 @@ class Map:
 			else:
 				self.displayMap[savegame.creatures[creature].yPos][savegame.creatures[creature].xPos] = savegame.creatures[creature]
 		drawMap = ''
-		pb1, pb2 = personalBar()
-		print('')
+		fl, sl = bottomMenu()
 		print('')
 		print('')
 		for yVal in range(len(self.displayMap)):
@@ -64,8 +62,12 @@ class Map:
 			print('  ' + drawMap + '  ')
 			drawMap = ''
 		print('')
-		print('  ' + pb1)
-		print('  ' + pb2)
+		print('     %s' % combat)
+		print('')
+		print('    HP: %s/%s  %s  |  XP: %s [%s/%s]' % (savegame.creatures['player'].curhp, savegame.creatures['player'].maxhp, getHPBar(savegame.creatures['player']), savegame.creatures['player'].curlvl, savegame.creatures['player'].curXP, levelingstats.xpToLevel[savegame.creatures['player'].curlvl + 1]))
+		print(' ')
+		print('  ' + fl)
+		print('  ' + sl)
 		self.displayMap = copy.deepcopy(self.CURRENTMAP)
 
 

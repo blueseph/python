@@ -35,6 +35,7 @@ def flagCheck():
             del savegame.creatures[creature]
 
     if playerDeath is True:
+        time.sleep(1.5)
         combatdisplay.infoScreen('You have died', 5)
 
     ###############################
@@ -59,6 +60,7 @@ def flagCheck():
 def doGameTurn():
     global gameTurnCount
     gameTurnCount += 1
+    flagCheck()
 
     spellsToRemove = []
     buffsToRemove = []
@@ -121,5 +123,4 @@ def doGameTurn():
             else:
                 spawnFailed += 1
 
-    flagCheck()
     savegame.current_dungeon_map[1].draw()

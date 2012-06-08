@@ -251,7 +251,7 @@ class Creature(Attributes):
         if random.randint(1, 20) <= (unitCritMod + self.mainhandCrit):
             unitMainhandCrit = True
         if self.offhand is not None and self.offhand is not 'shield':
-            if (random.randint(1, 20) <= (unitCritMod + self.offhanddCrit)):
+            if (random.randint(1, 20) <= (unitCritMod + self.offhandCrit)):
                 unitoffhandCrit = True
         if unitMainhandCrit is True or unitOffhandCrit is True:
             critRoll is True
@@ -296,6 +296,8 @@ class Creature(Attributes):
         self.endBuff(wepTotDmg)
         target.curhp -= wepTotDmg
         combat.determineDeath(target)
+        savegame.current_dungeon_map[1].draw(stringparse.meleeStringParse(self, target, critRoll, apRoll, wepTotDmg, blockRoll))
+        getch()
 
     ###############################
     #       buffs system          #
@@ -431,7 +433,6 @@ class Creature(Attributes):
                 pass
             else:
                 self.melee(target)
-                print('%s vs %s' % (self.type, target.type))
         else:
             self.xPos += dx
             self.yPos += dy
@@ -496,7 +497,7 @@ class Player(Creature):
 def spawnPlayer():
     classChosen = False
     arrow = 1
-    combatdisplay.spawnPlayerScreen(arrow)
+    combatdisplay.spawnPlayerScreen()
     while classChosen is False:
         input = getch()
         if 'w' in str(input): 
@@ -507,11 +508,7 @@ def spawnPlayer():
             arrow += 1
             if arrow > 4:
                 arrow = 4
-        elif 'xff' in str(input): #debug
-            arrow += 1
-            if arrow > 4:
-                arrow = 4
-        elif '\\r' in str(input):
+        elif '\\r' in str(input) or 'xff':
             classChosen = True
             if arrow == 1: # zerker
                 playerClass     = Berserker

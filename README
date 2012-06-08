@@ -1,3 +1,17 @@
+v.02
+	ADDED:
+		- combat display system
+		- hp display system
+		- new interface bar
+		- inventory display
+
+	CHANGED:
+		- lots of cleanup. more coming
+
+	TODO:
+		- add functionality of the rest of the menu system
+		- clean up misc inventory functions
+
 V.01
 
 	ADDED:
@@ -14,3 +28,5 @@ V.01
 
 
 iamblueseph.blogspot.com
+
+latest build can always be found at http://dl.dropbox.com/u/31294022/exe.win-amd64-3.2.rar
