@@ -6,7 +6,13 @@ v.02
 		- inventory display
 
 	CHANGED:
+		- changed resolution of window
+		- changed name of a few items
+		- removed unneeded functions off items and equipment
 		- lots of cleanup. more coming
+
+	FIXED:
+		- rogue offhand crit bug
 
 	TODO:
 		- add functionality of the rest of the menu system
@@ -15,7 +21,7 @@ v.02
 V.01
 
 	ADDED:
-		- pathfinding system.
+		- pathfinding system
 		- new class picking screen
 
 	CHANGED:
