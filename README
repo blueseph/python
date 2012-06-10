@@ -1,3 +1,20 @@
+v.03
+	ADDED:
+		- null item for when a 2h is equipped
+		- unarmed 'weapon'
+		- character display
+
+	CHANGED:
+		- weapon creation is simpler
+		- simplified equipping of items
+		- changed xp algorithm
+
+	FIXED:
+		- rogue offhand crit bug
+
+	TODO:
+		- add spells to character screen
+		- retool required xp to level
 v.02
 	ADDED:
 		- combat display system
