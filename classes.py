@@ -32,6 +32,11 @@ class Creature(Attributes):
     #       sets initial stats    #
     ###############################
 
+    def initEquip(self):
+        self.mainhand = equipment.createWeapon(" ")
+        self.offhand = equipment.createWeapon(" ")
+        self.chestArmor = equipment.createArmor(" ")
+
     def recordStats(self):
         self.currentStats = {
         'str': self.str,
@@ -78,10 +83,7 @@ class Creature(Attributes):
         self.xPos               = 10
         self.yPos               = 10
         self.prevPosition       = self.xPos, self.yPos
-        self.mainhand           = None
-        self.offhand            = None
-        self.offhandWeight      = 0
-        self.armorWeight        = 0
+        self.initEquip()
         self.inventory          = []
         self.spells             = []
         self.spellCooldowns     = {}
@@ -111,39 +113,21 @@ class Creature(Attributes):
     ###############################
 
     def equip(self, item):
-        if (item.type is '1h' or '2h') and (self.mainhand is None): #deletes currently equipped items. need to fix
-            self.mainhand           = item.type
-            self.mainhandWeaponName = item.name
-            self.mainhandWeight     = item.weight
-            self.mainhandGoldValue  = item.goldValue
-            self.mainhandWepMin     = item.wepMin
-            self.mainhandWepMax     = item.wepMax
-            self.mainhandCrit       = item.wepCrit
-            self.mainhandCritDmg    = item.wepCritDmg
-            self.mainhandRange      = item.wepRange # need to impliment range
-        elif self.mainhand is '1h' and item.type is '1h':
-            self.offhand            = item.type
-            self.offhandItemName    = item.name
-            self.offhandWeight      = item.weight
-            self.offhandGoldValue   = item.goldValue
-            self.offhandWepMin      = item.wepMin
-            self.offhandWepMax      = item.wepMax
-            self.offhandCrit        = item.wepCrit
-            self.offhandCritDmg     = item.wepCritDmg
-            self.offhandRange       = item.wepRange
-        elif item.type is 'shield':
-            self.offhand            = item.type
-            self.offhandItemName    = item.name
-            self.offhandWeight      = item.weight
-            self.offhandGoldValue   = item.goldValue
-            self.offhandBlockValue  = item.blockValue
-            self.offhandBlockChance = item.blockChance
-        elif (item.type is not 'shield' or '1h' or '2h'):
-            self.armorName          = item.name
-            self.armorWeight        = item.weight
-            self.armorGoldValue     = item.goldValue
-            self.armorClass         = item.armorClass
-        self.weight = self.mainhandWeight + self.offhandWeight + self.armorWeight
+        if (item.type is '1h' or '2h') and (self.mainhand.name == ' '):
+            self.mainhand           = item
+        elif (self.mainhand.type is '1h') and (item.type is '1h' or item.type is 'shield'):
+            self.offhand            = item
+        elif (item.type is 'chest'):
+            self.chestArmor         = item
+        self.weight = self.mainhand.weight + self.offhand.weight + self.chestArmor.weight
+
+    def unequip(self, item):
+        if item is self.mainhand:
+            self.mainhand = equipment.createWeapon(" ")
+        elif item is self.offhand:
+            self.offhand = equipment.createWeapon(" ")
+        if item is self.chestArmor:
+            self.chestArmor = equipment.createArmor(" ")
 
     ###############################
     #       inventory system      #
@@ -157,8 +141,7 @@ class Creature(Attributes):
     ###############################
     
     def giveXP(self):
-        return int(10 + (self.curlvl ** 3.05))
-        #int(random.randint((i+5), (i+8)) + (((i+2) ** 4)/6))
+        return int(random.randint((self.curlvl + 5), (self.curlvl + 8)) + (((self.curlvl + 2) ** 4)/6))
 
     ###############################
     #       spell system          #
@@ -240,18 +223,18 @@ class Creature(Attributes):
 
     def dmgRoll(self):
         wepOhDmg = 0
-        wepMhDmg = random.randint(self.mainhandWepMin, self.mainhandWepMax) + self.dmg
-        if self.offhand is not None and self.offhand is not 'shield':
-            wepOhDmg = (random.randint(self.offhandWepMin, self.offhandWepMax) + self.dmg)/2
+        wepMhDmg = random.randint(self.mainhand.min, self.mainhand.max) + self.dmg
+        if self.offhand.name != ' ' and self.offhand.type is not 'shield':
+            wepOhDmg = (random.randint(self.offhand.wepMin, self.offhand.wepMax) + self.dmg)/2
         return wepMhDmg, wepOhDmg
 
     def critRoll(self):
         critRoll, unitOffhandCrit, unitMainhandCrit = False, False, False
         unitCritMod = int(self.dex/3)
-        if random.randint(1, 20) <= (unitCritMod + self.mainhandCrit):
+        if random.randint(1, 20) <= (unitCritMod + self.mainhand.crit):
             unitMainhandCrit = True
-        if self.offhand is not None and self.offhand is not 'shield':
-            if (random.randint(1, 20) <= (unitCritMod + self.offhandCrit)):
+        if self.offhand.name is not ' ' and self.offhand.type is not 'shield':
+            if (random.randint(1, 20) <= (unitCritMod + self.offhand.crit)):
                 unitoffhandCrit = True
         if unitMainhandCrit is True or unitOffhandCrit is True:
             critRoll is True
@@ -266,7 +249,7 @@ class Creature(Attributes):
     def blockRoll(self, target):
         blockRoll = False
         if target.offhand is 'shield':
-            if (random.randint(1, 10) <= target.offhandBlockChance):
+            if (random.randint(1, 10) <= target.offhand.blockChance):
                 blockRoll = True
         return blockRoll
 
@@ -457,10 +440,7 @@ class Player(Creature):
         self.curhp              = self.maxhp
         self.xPos               = 8
         self.yPos               = 10
-        self.mainhand           = None
-        self.offhand            = None
-        self.offhandWeight      = 0
-        self.armorWeight        = 0
+        self.initEquip()
         self.inventory          = []
         self.spells             = []
         self.spellCooldowns     = {}
@@ -508,29 +488,29 @@ def spawnPlayer():
             arrow += 1
             if arrow > 4:
                 arrow = 4
-        elif '\\r' in str(input) or 'xff':
+        elif '\\r' in str(input) or 'xff' in str(input):
             classChosen = True
             if arrow == 1: # zerker
                 playerClass     = Berserker
-                weapon          = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 5))
-                armor           = equipment.Armor(*equipment.chooseArmor(itemlist.armor_list, 2))
+                weapon          = equipment.createWeapon('greataxe')
+                armor           = equipment.createArmor('chain shirt')
                 hasOffhand      = False
             if arrow == 2: # warrior
                 playerClass     = Warrior
-                weapon          = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 0))
-                armor           = equipment.Armor(*equipment.chooseArmor(itemlist.armor_list, 4))
-                offhand         = equipment.Shield(*equipment.chooseShield(itemlist.shield_list, 1))
+                weapon          = equipment.createWeapon('longsword')
+                armor           = equipment.createArmor('splintmail')
+                offhand         = equipment.createShield('round shield')
                 hasOffhand      = True
             if arrow == 3: # rogue
                 playerClass     = Rogue
-                weapon          = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 3))
-                offhand         = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 3))
-                armor           = equipment.Armor(*equipment.chooseArmor(itemlist.armor_list, 1))
+                weapon          = equipment.createWeapon('dagger')
+                offhand         = equipment.createWeapon('dagger')
+                armor           = equipment.createArmor('leather armor')
                 hasOffhand = True
             if arrow == 4: # wizard
                 playerClass     = Wizard
-                weapon          = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, 8))
-                armor           = equipment.Armor(*equipment.chooseArmor(itemlist.armor_list, 0))
+                weapon          = equipment.createWeapon('worn staff')
+                armor           = equipment.createArmor('cloth armor')
                 hasOffhand = False
             player = Player(Creature(playerClass))
             player.addInventoryItem(weapon)
@@ -547,13 +527,15 @@ def spawnPlayer():
             player.setInitSpawn()
             savegame.creatures['player'] = player
             break
+        else:
+            pass
         combatdisplay.spawnPlayerScreen(arrow)
 
 def spawnMonster():
     monsterClass = Orc
     monster = Creature(monsterClass)
-    weapon = equipment.Weapon(*equipment.chooseWeapon(itemlist.weapon_list, random.randint(0, 7)))
-    armor  = equipment.Armor(*equipment.chooseArmor(itemlist.armor_list, random.randint(0, 5)))
+    weapon = equipment.createWeapon('longsword')
+    armor  = equipment.createArmor('cloth armor')
     monster.addInventoryItem(weapon)
     monster.addInventoryItem(armor)
     monster.equip(weapon)

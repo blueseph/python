@@ -10,7 +10,7 @@ import os
 from msvcrt import getch
 
 
-os.system("mode con cols=90 lines=30") # namkes 
+os.system("mode con cols=90 lines=30") 
 
 
 classes.spawnPlayer()
@@ -38,7 +38,7 @@ while gameturn.playerDeath is False:
         savegame.creatures['player'].move(1, 0)
         gameturn.doGameTurn()
     elif '.' in str(input):
-        gameturn.doGameTurn()
+        gameturn.doGameTurn() 
 
     ###############################
     #           inventory         #
@@ -102,4 +102,18 @@ while gameturn.playerDeath is False:
             elif '\\x1b' in str(invInput):
                 invEscape = True 
                 savegame.current_dungeon_map[1].draw()
+
+    ###############################
+    #           character         #
+    ###############################
+
+    elif 'c' in str(input):
+        characterEscape = False
+        combatdisplay.characterScreen()
+        while characterEscape is False:
+            charInput = getch()
+            if 'c' in str(charInput) or '\\x1b' in str(charInput):
+                characterEscape = True
+                savegame.current_dungeon_map[1].draw()
+        
 
