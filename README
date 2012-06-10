@@ -9,9 +9,6 @@ v.03
 		- simplified equipping of items
 		- changed xp algorithm
 
-	FIXED:
-		- rogue offhand crit bug
-
 	TODO:
 		- add spells to character screen
 		- retool required xp to level
